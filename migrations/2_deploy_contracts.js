@@ -1,5 +1,10 @@
-var SimpleStorage = artifacts.require("./SimpleStorage.sol");
+/* global artifacts */
 
-module.exports = function(deployer) {
-  deployer.deploy(SimpleStorage);
-};
+const MainframeToken = artifacts.require('MainframeToken')
+const MainframeStake = artifacts.require('MainframeStake')
+
+module.exports = (deployer, network) => {
+  deployer.deploy(MainframeToken).then(() => {
+    return deployer.deploy(MainframeStake, MainframeToken.address)
+  })
+}
