@@ -36,7 +36,7 @@ contract ACMainframeStake {
   function receiveApproval(address _sender, uint256 _value, ERC20Token _tokenContract, bytes _extraData) public {
     require(_tokenContract == tokenContract);
     require(_tokenContract.transferFrom(_sender, address(this), _value));
-    stakerInfo[msg.sender] += _value;
+    stakerInfo[_sender] += _value;
     totalStaked += _value;
   }
 
@@ -54,6 +54,10 @@ contract ACMainframeStake {
 
   function amountStaked(address _address) public view returns (uint256 balance) {
     return stakerInfo[_address];
+  }
+
+  function hasStake(address _address) public view returns (bool) {
+    return stakerInfo[_address] > 0;
   }
 
 }

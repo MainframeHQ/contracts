@@ -34,7 +34,7 @@ contract('MainframeToken', (accounts) => {
       console.log('total staked: ', totalStaked)
     } catch (err) {
       console.log(err)
-			return false
+      return false
     }
 
     assert.equal(250, totalStaked)
@@ -64,7 +64,7 @@ contract('MainframeToken', (accounts) => {
       console.log('total staked: ', totalStaked)
     } catch (err) {
       console.log(err)
-			return false
+      return false
     }
     assert.equal(150, totalStaked)
   })
@@ -84,24 +84,16 @@ contract('MainframeToken', (accounts) => {
     return false
   })
 
-	it("checks account has stake", async () => {
-		const tokenContract = await MainframeToken.deployed()
-		const stakeContract = await MainframeStake.deployed()
-		let hasStake
-		try {
-			await tokenContract.approveAndCall(stakeContract.address, 50, "", { from: accounts[0], value: 0, gas: 3000000 })
-			hasStake = await stakeContract.hasStake(accounts[0])
-
-			const num = await stakeContract.totalStaked()
-			const totalStaked = num.toString(10)
-			console.log('total staked: ', totalStaked)
-
-			console.log('hasStake: ', hasStake)
-		} catch (err) {
-			return false
-		}
-		assert.equal(true, hasStake)
-		return hasStake
-	})
+  it("checks account has stake", async () => {
+    const tokenContract = await MainframeToken.deployed()
+    const stakeContract = await MainframeStake.deployed()
+    let hasStake
+    try {
+      await tokenContract.approveAndCall(stakeContract.address, 50, "", { from: accounts[0], value: 0, gas: 3000000 })
+      hasStake = await stakeContract.hasStake(accounts[0])
+    } catch (err) {
+    }
+    assert.equal(true, hasStake)
+  })
 
 })
