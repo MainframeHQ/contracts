@@ -4,7 +4,7 @@ import contract from 'truffle-contract'
 import MainframeStakeContract from '../build/contracts/MainframeStake.json'
 import MainframeTokenContract from '../build/contracts/MainframeToken.json'
 
-import web3Async from './utils/web3Async'
+import web3 from './utils/web3'
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -14,13 +14,12 @@ import './App.css'
 const MainframeToken = contract(MainframeTokenContract)
 const MainframeStake = contract(MainframeStakeContract)
 
-const getAccounts = web3 =>
-  new Promise((resolve, reject) => {
-    web3.eth.getAccounts((err, accounts) => {
-      if (err) reject(err)
-      else resolve(accounts)
-    })
+const accountsAsync = new Promise((resolve, reject) => {
+  web3.eth.getAccounts((err, accounts) => {
+    if (err) reject(err)
+    else resolve(accounts)
   })
+})
 
 export default class App extends Component {
   state = {}
@@ -31,13 +30,11 @@ export default class App extends Component {
 
   async setup() {
     try {
-      const web3 = await web3Async
-
       MainframeToken.setProvider(web3.currentProvider)
       MainframeStake.setProvider(web3.currentProvider)
 
       const [accounts, stake, token] = await Promise.all([
-        getAccounts(web3),
+        accountsAsync,
         MainframeStake.deployed(),
         MainframeToken.deployed(),
       ])

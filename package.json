@@ -10,8 +10,8 @@
   "dependencies": {
     "dotenv": "^2.0.0",
     "lodash": "^4.17.5",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
     "zeppelin-solidity": "1.6.0"
   },
   "devDependencies": {
@@ -27,7 +27,6 @@
     "cross-spawn": "4.0.2",
     "css-loader": "0.26.0",
     "detect-port": "1.0.1",
-    "dotenv": "2.0.0",
     "eslint": "3.8.1",
     "eslint-config-react-app": "^0.5.0",
     "eslint-loader": "1.6.0",
