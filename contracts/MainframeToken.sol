@@ -32,24 +32,6 @@ contract MainframeToken is PausableToken {
         return super.transferFrom(_from, _to, _value);
     }
 
-    event Burn(address indexed _burner, uint _value);
-
-    function burn(uint _value) returns (bool)
-    {
-        balances[msg.sender] = balances[msg.sender].sub(_value);
-        totalSupply_ = totalSupply_.sub(_value);
-        Burn(msg.sender, _value);
-        Transfer(msg.sender, address(0x0), _value);
-        return true;
-    }
-
-    // save some gas by making only one contract call
-    function burnFrom(address _from, uint256 _value) returns (bool)
-    {
-        assert( transferFrom( _from, msg.sender, _value ) );
-        return burn(_value);
-    }
-
     function emergencyERC20Drain( ERC20 token, uint amount ) onlyOwner {
         // owner can drain tokens that are sent here by mistake
         token.transfer( owner, amount );

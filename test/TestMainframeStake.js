@@ -1,9 +1,10 @@
-var MainframeStake = artifacts.require("./MainframeStake.sol");
-var MainframeToken = artifacts.require("./MainframeToken.sol");
+const MainframeStake = artifacts.require('./MainframeStake.sol')
+const MainframeToken = artifacts.require('./MainframeToken.sol')
+const utils = require('./utils.js')
 
 contract('MainframeStake', (accounts) => {
 
-  it("should deposits tokens", async () => {
+  it('should deposits tokens', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
     await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
@@ -14,21 +15,18 @@ contract('MainframeStake', (accounts) => {
     assert.equal(totalStaked, 100)
   })
 
-  it("should fail to despoit tokens if balance too low", async () => {
+  it('should fail to despoit tokens if balance too low', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
     await tokenContract.transfer(accounts[1], 100, { from: accounts[0], value: 0, gas: 3000000 })
     await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
-    let success
-    try {
-      success = await stakeContract.deposit(200, { from: accounts[0], value: 0, gas: 3000000 })
-    } catch (err) {
-      success = false
-    }
-    assert.equal(false, success)
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await stakeContract.deposit(200, { from: accounts[0], value: 0, gas: 3000000 })
+    })
+    assert(didFail)
   })
 
-  it("should allow withdraw if balance available", async () => {
+  it('should allow withdraw if balance available', async () => {
     const stakeContract = await MainframeStake.deployed()
     await stakeContract.withdraw(100, { from: accounts[0], value: 0, gas: 3000000 })
     const totalStaked = await stakeContract.totalStaked()
@@ -37,16 +35,15 @@ contract('MainframeStake', (accounts) => {
     assert.equal(0, totalStaked)
   })
 
-  it("should fail withdraw if balance too low", async () => {
+  it('should fail withdraw if balance too low', async () => {
     const stakeContract = await MainframeStake.deployed()
-    try {
+    const didFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.withdraw(1000, { from: accounts[0], value: 0, gas: 3000000 })
-    } catch (err) {
-      assert(err)
-    }
+    })
+    assert(didFail)
   })
 
-  it("should check address has stake", async () => {
+  it('should check address has stake', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
     await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
