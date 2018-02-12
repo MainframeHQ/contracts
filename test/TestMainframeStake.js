@@ -1,98 +1,57 @@
-const web3 = global.web3;
-var MainframeStake = artifacts.require("./ACMainframeStake.sol");
-var MainframeToken = artifacts.require("./ACMainframeToken.sol");
+var MainframeStake = artifacts.require("./MainframeStake.sol");
+var MainframeToken = artifacts.require("./MainframeToken.sol");
 
-contract('MainframeToken', (accounts) => {
+contract('MainframeStake', (accounts) => {
 
-  it("allows staking tokens in two transactions", async () => {
+  it("should deposits tokens", async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
-    let totalStaked
-    try {
-      await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
-      await stakeContract.stakeTokens(100, { from: accounts[0], value: 0, gas: 3000000 })
-      const num = await stakeContract.totalStaked()
-      totalStaked = num.toString(10)
-      console.log('total staked: ', totalStaked)
-    } catch (err) {
-      console.log(err)
-    }
-
-    const stakersBalance = await stakeContract.amountStaked(accounts[0])
-    assert.equal(stakersBalance.toString(10), 100)
-    assert.equal(100, totalStaked)
+    await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
+    await stakeContract.deposit(100, { from: accounts[0], value: 0, gas: 3000000 })
+    const totalStaked = await stakeContract.totalStaked()
+    const stakersBalance = await stakeContract.balanceOf(accounts[0])
+    assert.equal(stakersBalance, 100)
+    assert.equal(totalStaked, 100)
   })
 
-  it("allows staking tokens in a single transaction", async () => {
-    const tokenContract = await MainframeToken.deployed()
-    const stakeContract = await MainframeStake.deployed()
-    let totalStaked
-    try {
-      await tokenContract.approveAndCall(stakeContract.address, 150, "", { from: accounts[0], value: 0, gas: 3000000 })
-      const num = await stakeContract.totalStaked()
-      totalStaked = num.toString(10)
-      console.log('total staked: ', totalStaked)
-    } catch (err) {
-      console.log(err)
-      return false
-    }
-
-    assert.equal(250, totalStaked)
-  })
-
-  it("it fails to stake tokens if balance too low", async () => {
+  it("should fail to despoit tokens if balance too low", async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
     await tokenContract.transfer(accounts[1], 100, { from: accounts[0], value: 0, gas: 3000000 })
-    let totalStaked
+    await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
+    let success
     try {
-      const success = await tokenContract.approveAndCall(stakeContract.address, 101, "", { from: accounts[1], value: 0, gas: 3000000 })
+      success = await stakeContract.deposit(200, { from: accounts[0], value: 0, gas: 3000000 })
     } catch (err) {
-      return true
+      success = false
     }
-    return false
+    assert.equal(false, success)
   })
 
-  it("it allows withdraw if balance available", async () => {
-    const tokenContract = await MainframeToken.deployed()
+  it("should allow withdraw if balance available", async () => {
     const stakeContract = await MainframeStake.deployed()
-    let totalStaked
-    try {
-      await stakeContract.withdrawStake(100, { from: accounts[0], value: 0, gas: 3000000 })
-      const num = await stakeContract.totalStaked()
-      totalStaked = num.toString(10)
-      console.log('total staked: ', totalStaked)
-    } catch (err) {
-      console.log(err)
-      return false
-    }
-    assert.equal(150, totalStaked)
+    await stakeContract.withdraw(100, { from: accounts[0], value: 0, gas: 3000000 })
+    const totalStaked = await stakeContract.totalStaked()
+    const stakersBalance = await stakeContract.balanceOf(accounts[0])
+    assert.equal(stakersBalance, 0)
+    assert.equal(0, totalStaked)
   })
 
-  it("it declines withdraw if request above balance", async () => {
-    const tokenContract = await MainframeToken.deployed()
+  it("should fail withdraw if balance too low", async () => {
     const stakeContract = await MainframeStake.deployed()
-    let totalStaked
     try {
-      await stakeContract.withdrawStake(1000, { from: accounts[0], value: 0, gas: 3000000 })
-      const num = await stakeContract.totalStaked()
-      totalStaked = num.toString(10)
-      console.log('total staked: ', totalStaked)
+      await stakeContract.withdraw(1000, { from: accounts[0], value: 0, gas: 3000000 })
     } catch (err) {
-      return true
+      assert(err)
     }
-    return false
   })
 
-  it("checks account has stake", async () => {
+  it("should check address has stake", async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
-    let hasStake
-    try {
-      await tokenContract.approveAndCall(stakeContract.address, 50, "", { from: accounts[0], value: 0, gas: 3000000 })
-      hasStake = await stakeContract.hasStake(accounts[0])
-    } catch (err) {
-    }
+    await tokenContract.approve(stakeContract.address, 100, { from: accounts[0], value: 0, gas: 3000000 })
+    await stakeContract.deposit(100, { from: accounts[0], value: 0, gas: 3000000 })
+    const hasStake = await stakeContract.hasStake(accounts[0])
     assert.equal(true, hasStake)
   })
 
