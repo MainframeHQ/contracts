@@ -14,7 +14,7 @@ contract MainframeToken is PausableToken {
         _;
     }
 
-    function MainframeToken()
+    function MainframeToken() public
     {
         // assign the total tokens to mainframe
         totalSupply_ = 1000000000000000000; // 10 billion, 8 decimals
@@ -22,17 +22,17 @@ contract MainframeToken is PausableToken {
         Transfer(address(0x0), msg.sender, totalSupply_);
     }
 
-    function transfer(address _to, uint _value) validDestination(_to) returns (bool)
+    function transfer(address _to, uint _value) public validDestination(_to) returns (bool)
     {
         return super.transfer(_to, _value);
     }
 
-    function transferFrom(address _from, address _to, uint _value) validDestination(_to) returns (bool)
+    function transferFrom(address _from, address _to, uint _value) public validDestination(_to) returns (bool)
     {
         return super.transferFrom(_from, _to, _value);
     }
 
-    function emergencyERC20Drain( ERC20 token, uint amount ) onlyOwner {
+    function emergencyERC20Drain( ERC20 token, uint amount ) public onlyOwner {
         // owner can drain tokens that are sent here by mistake
         token.transfer( owner, amount );
     }
