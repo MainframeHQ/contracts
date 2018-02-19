@@ -15,10 +15,10 @@ contract('MainframeToken', (accounts) => {
     assert.equal(symbol, 'MFT')
   })
 
-  it('should have 8 decimals', async () => {
+  it('should have 18 decimals', async () => {
     const token = await MainframeToken.deployed()
     const decimals = await token.decimals.call()
-    assert.equal(decimals, 8)
+    assert.equal(decimals, 18)
   })
 
   it('should assign creator as owner', async () => {
@@ -30,7 +30,7 @@ contract('MainframeToken', (accounts) => {
   it('should assign initial token supply to owner', async () => {
     const token = await MainframeToken.deployed()
     const ownersBalance = await token.balanceOf.call(accounts[0])
-    assert.equal(1e18, ownersBalance)
+    assert.equal(1e28, ownersBalance)
   })
 
   it('should allow transfer of ownership by owner', async () => {
