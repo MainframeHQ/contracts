@@ -4,6 +4,12 @@ const utils = require('./utils.js')
 
 contract('MainframeStake', (accounts) => {
 
+  it('should set correct required stake', async () => {
+    const stakeContract = await MainframeStake.deployed()
+    const requiredStake = await stakeContract.requiredStake()
+    assert.equal(requiredStake, 1e18)
+  })
+
   it('should whitelist address when staking', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()

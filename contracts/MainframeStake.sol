@@ -27,7 +27,7 @@ contract MainframeStake is Ownable {
 
   function MainframeStake(address _tokenAddress) public {
     token = MainframeToken(_tokenAddress);
-    requiredStake = 1;
+    requiredStake = 1 ether; // ether = 10^18
     owner = msg.sender;
   }
 

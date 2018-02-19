@@ -5,7 +5,7 @@ import "zeppelin-solidity/contracts/token/ERC20/PausableToken.sol";
 contract MainframeToken is PausableToken {
     string  public  constant name = "Mainframe Token";
     string  public  constant symbol = "MFT";
-    uint8   public  constant decimals = 8;
+    uint8   public  constant decimals = 18;
 
     modifier validDestination( address to )
     {
@@ -17,7 +17,7 @@ contract MainframeToken is PausableToken {
     function MainframeToken() public
     {
         // assign the total tokens to mainframe
-        totalSupply_ = 1000000000000000000; // 10 billion, 8 decimals
+        totalSupply_ = 10000000000 * 10**18; // 10 billion, 18 decimals
         balances[msg.sender] = totalSupply_;
         Transfer(address(0x0), msg.sender, totalSupply_);
     }
