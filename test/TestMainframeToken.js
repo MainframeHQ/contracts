@@ -1,4 +1,5 @@
 const MainframeToken = artifacts.require('./MainframeToken.sol')
+const BigNumber = require('bignumber.js');
 const utils = require('./utils.js')
 
 contract('MainframeToken', (accounts) => {
@@ -30,7 +31,8 @@ contract('MainframeToken', (accounts) => {
   it('should assign initial token supply to owner', async () => {
     const token = await MainframeToken.deployed()
     const ownersBalance = await token.balanceOf.call(accounts[0])
-    assert.equal(1e28, ownersBalance)
+    const expected = new BigNumber(10000000000 * 10**18)
+    assert.equal(expected.toString(), ownersBalance.toString())
   })
 
   it('should allow transfer of ownership by owner', async () => {
@@ -88,8 +90,10 @@ contract('MainframeToken', (accounts) => {
     utils.assertEvent(token, { event: 'Transfer' })
     const ending0Balance = await token.balanceOf(accounts[0])
     const ending1Balance = await token.balanceOf(accounts[1])
-    assert.equal(ending0Balance.toNumber(), starting0Balance.toNumber() - txAmount, 'Balance of account 0 incorrect')
-    assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() + txAmount, 'Balance of account 1 incorrect')
+    const expected0Bal = starting0Balance.minus(txAmount)
+    const expected1Bal = starting1Balance.plus(txAmount)
+    assert.equal(ending0Balance.toString(), expected0Bal.toString(), 'Balance of account 0 incorrect')
+    assert.equal(ending1Balance.toString(), expected1Bal.toString(), 'Balance of account 1 incorrect')
   })
 
   it('should allow transferFrom when address has approved balance', async () => {
