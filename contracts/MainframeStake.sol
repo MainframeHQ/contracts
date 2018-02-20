@@ -1,15 +1,10 @@
 pragma solidity ^0.4.18;
 
-import "zeppelin-solidity/contracts/token/ERC20/PausableToken.sol";
-
-contract MainframeToken {
-  function transferFrom(address from, address to, uint256 value) public returns (bool);
-  function transfer(address to, uint256 value) public returns (bool);
-  function balanceOf(address who) public view returns (uint256);
-}
+import "./MainframeEscrow.sol";
 
 contract MainframeStake is Ownable {
-  MainframeToken token;
+  MainframeEscrow escrow;
+
   uint256 public requiredStake;
 
   struct Staker {
@@ -25,8 +20,8 @@ contract MainframeStake is Ownable {
   mapping (address => Staker) public stakers; // maintains balance and addresses of stakers
   mapping (address => WhitelistOwner) public whitelist; // map of whitelisted addresses for efficient hasStaked check
 
-  function MainframeStake(address _tokenAddress) public {
-    token = MainframeToken(_tokenAddress);
+  function MainframeStake(address _escrowAddress) public {
+    escrow = MainframeEscrow(_escrowAddress);
     requiredStake = 1 ether; // ether = 10^18
     owner = msg.sender;
   }
@@ -40,8 +35,8 @@ contract MainframeStake is Ownable {
     whitelist[whitelistAddress].owner = msg.sender;
     whitelist[whitelistAddress].stake = _value;
 
-    token.transferFrom(msg.sender, this, _value);
-    Deposit(msg.sender, _value, stakers[msg.sender].balance);
+    escrow.deposit(msg.sender, _value);
+    Whitelisted(msg.sender);
     return true;
   }
 
@@ -56,11 +51,11 @@ contract MainframeStake is Ownable {
     }
     delete stakers[msg.sender].addresses;
 
-    // Transfer tokens back to sender and clear balance
+    // Transfer stakes back to sender and clear balance
     uint256 balance = stakers[msg.sender].balance;
     stakers[msg.sender].balance = 0;
-    token.transfer(msg.sender, balance);
-    Withdrawal(msg.sender, balance, 0);
+    escrow.withdraw(msg.sender, balance);
+    Unlisted(msg.sender);
     return true;
   }
 
@@ -85,8 +80,8 @@ contract MainframeStake is Ownable {
     stakers[msg.sender].addresses.length --;
     delete whitelist[_address];
 
-    token.transfer(msg.sender, stake);
-    Withdrawal(msg.sender, stake, stakers[msg.sender].balance);
+    escrow.withdraw(msg.sender, stake);
+    Unlisted(msg.sender);
   }
 
   function balanceOf(address _owner) public view returns (uint256 balance) {
@@ -94,7 +89,7 @@ contract MainframeStake is Ownable {
   }
 
   function totalStaked() public view returns (uint256) {
-    return token.balanceOf(address(this));
+    return escrow.totalBalance();
   }
 
   function hasStake(address _address) public view returns (bool) {
@@ -110,6 +105,6 @@ contract MainframeStake is Ownable {
     requiredStake = _value;
   }
 
-  event Deposit(address indexed _owner, uint256 _value, uint256 _balance);
-  event Withdrawal(address indexed _owner, uint256 _value, uint256 _balance);
+  event Whitelisted(address indexed _owner);
+  event Unlisted(address indexed _owner);
 }

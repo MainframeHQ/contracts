@@ -1,4 +1,5 @@
 const MainframeStake = artifacts.require('./MainframeStake.sol')
+const MainframeEscrow = artifacts.require('./MainframeEscrow.sol')
 const MainframeToken = artifacts.require('./MainframeToken.sol')
 const utils = require('./utils.js')
 
@@ -10,32 +11,51 @@ contract('MainframeStake', (accounts) => {
     assert.equal(requiredStake, 1e18)
   })
 
+  it('should change the required stake correctly', async () => {
+    const stakeContract = await MainframeStake.deployed()
+
+    const expected = 50
+    await stakeContract.setRequiredStake(50)
+    const requiredStake = await stakeContract.requiredStake()
+
+    assert.equal(requiredStake, expected)
+  })
+
   it('should whitelist address when staking', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
+    const escrowContract = await MainframeEscrow.deployed()
     const requiredStake = await stakeContract.requiredStake()
-    await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
+    escrowContract.transferOwnership(stakeContract.address)
+
+    await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
     await stakeContract.depositAndWhitelist(requiredStake, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
-    utils.assertEvent(stakeContract, { event: 'Deposit' })
+    utils.assertEvent(stakeContract, { event: 'Whitelisted' })
     const totalStaked = await stakeContract.totalStaked()
-    const stakersBalance = await stakeContract.balanceOf(accounts[0])
+    const stakersBalance = await escrowContract.balanceOf(accounts[0])
     const hasStake = await stakeContract.hasStake(accounts[0])
+
     assert(hasStake)
     assert.equal(stakersBalance.toNumber(), requiredStake)
     assert.equal(totalStaked.toNumber(), requiredStake)
+
     // Reset
     await stakeContract.withdrawFullBalance({ from: accounts[0], value: 0, gas: 3000000 })
     const hasStakedAfterReset = await stakeContract.hasStake(accounts[0])
+    utils.assertEvent(stakeContract, { event: 'Unlisted' })
+
     assert.equal(hasStakedAfterReset, false)
   })
 
   it('should unwhitelist address and return stake', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
+    const escrowContract = await MainframeEscrow.deployed()
     const requiredStake = await stakeContract.requiredStake()
-    await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
+
+    await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
     await stakeContract.depositAndWhitelist(requiredStake, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
-    utils.assertEvent(stakeContract, { event: 'Withdrawal' })
+    utils.assertEvent(stakeContract, { event: 'Unlisted' })
     let totalStaked = await stakeContract.totalStaked()
     let stakersBalance = await stakeContract.balanceOf(accounts[0])
     let hasStake = await stakeContract.hasStake(accounts[0])
@@ -55,8 +75,9 @@ contract('MainframeStake', (accounts) => {
   it('should fail to deposit tokens if balance too low', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
+    const escrowContract = await MainframeEscrow.deployed()
     const requiredStake = await stakeContract.requiredStake()
-    await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[1], value: 0, gas: 3000000 })
+    await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[1], value: 0, gas: 3000000 })
     const didFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.depositAndWhitelist(requiredStake, accounts[1], { from: accounts[1], value: 0, gas: 3000000 })
     })
@@ -66,9 +87,10 @@ contract('MainframeStake', (accounts) => {
   it('should fail to deposit tokens if it pushes balance over deposit limit', async () => {
     const tokenContract = await MainframeToken.deployed()
     const stakeContract = await MainframeStake.deployed()
+    const escrowContract = await MainframeEscrow.deployed()
     const requiredStake = await stakeContract.requiredStake()
     const deposit = requiredStake + 5
-    await tokenContract.approve(stakeContract.address, deposit, { from: accounts[0], value: 0, gas: 3000000 })
+    await tokenContract.approve(escrowContract.address, deposit, { from: accounts[0], value: 0, gas: 3000000 })
     const didFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.depositAndWhitelist(200, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
     })
@@ -78,6 +100,7 @@ contract('MainframeStake', (accounts) => {
   it('should withdraw whole balance and remove all of the senders whitelisted addresses', async () => {
     const stakeContract = await MainframeStake.deployed()
     const tokenContract = await MainframeToken.deployed()
+    const escrowContract = await MainframeEscrow.deployed()
     const requiredStake = await stakeContract.requiredStake()
 
     await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
