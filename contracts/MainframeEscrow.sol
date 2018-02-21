@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-import "zeppelin-solidity/contracts/token/ERC20/PausableToken.sol";
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract MainframeToken {
   function transferFrom(address from, address to, uint256 value) public returns (bool);
