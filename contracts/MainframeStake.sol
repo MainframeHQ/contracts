@@ -105,6 +105,10 @@ contract MainframeStake is Ownable {
     requiredStake = _value;
   }
 
+  function getEscrowAddress() public view returns (address) {
+    return address(escrow);
+  }
+
   event Whitelisted(address indexed _owner);
   event Unlisted(address indexed _owner);
 }

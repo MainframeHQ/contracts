@@ -5,6 +5,13 @@ const utils = require('./utils.js')
 
 contract('MainframeStake', (accounts) => {
 
+  it('should return correct escrow address', async () => {
+    const stakeContract = await MainframeStake.deployed()
+    const escrowContract = await MainframeEscrow.deployed()
+    const escrowAddress = await stakeContract.getEscrowAddress()
+    assert.equal(escrowAddress, escrowContract.address)
+  })
+
   it('should set correct required stake', async () => {
     const stakeContract = await MainframeStake.deployed()
     const requiredStake = await stakeContract.requiredStake()
@@ -27,7 +34,7 @@ contract('MainframeStake', (accounts) => {
     const stakeContract = await MainframeStake.deployed()
     const escrowContract = await MainframeEscrow.deployed()
     const requiredStake = await stakeContract.requiredStake()
-    escrowContract.transferOwnership(stakeContract.address)
+    escrowContract.changeStakingAddress(stakeContract.address)
 
     await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
     await stakeContract.depositAndWhitelist(requiredStake, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
