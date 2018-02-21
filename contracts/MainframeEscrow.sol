@@ -20,7 +20,6 @@ contract MainframeEscrow is Ownable {
   function deposit(address _address, uint256 _value) public onlyOwner returns (bool success) {
     token.transferFrom(_address, this, _value);
     balances[_address] += _value;
-    Deposit(_address, _value, balances[_address]);
     return true;
   }
 
@@ -28,7 +27,6 @@ contract MainframeEscrow is Ownable {
     require(balances[_address] >= _value);
     token.transfer(_address, _value);
     balances[_address] -= _value;
-    Withdrawal(_address, _value, balances[_address]);
     return true;
   }
 
@@ -39,7 +37,4 @@ contract MainframeEscrow is Ownable {
   function totalBalance() public view returns (uint256) {
     return token.balanceOf(this);
   }
-
-  event Deposit(address indexed _address, uint256 _value, uint256 _balance);
-  event Withdrawal(address indexed _address, uint256 _value, uint256 _balance);
 }
