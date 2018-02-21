@@ -14,8 +14,8 @@ contract MainframeToken is PausableToken {
   }
 
   function MainframeToken() public {
-    // assign the total tokens to Mainframe
-    totalSupply_ = 10000000000 * 10**18; // 10 billion, 18 decimals
+    // assign the total tokens to mainframe
+    totalSupply_ = 10000000000 ether; // 10 billion, 18 decimals (ether = 10^18)
     balances[msg.sender] = totalSupply_;
     Transfer(address(0x0), msg.sender, totalSupply_);
   }
