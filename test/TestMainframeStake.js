@@ -7,7 +7,8 @@ contract('MainframeStake', (accounts) => {
   it('should set correct required stake', async () => {
     const stakeContract = await MainframeStake.deployed()
     const requiredStake = await stakeContract.requiredStake()
-    assert.equal(requiredStake, 1e18)
+    const expected = '1000000000000000000'
+    assert.equal(requiredStake.toString(), expected)
   })
 
   it('should whitelist address when staking', async () => {
