@@ -1,5 +1,6 @@
 pragma solidity ^0.4.18;
 
+import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract MainframeToken {
@@ -9,6 +10,7 @@ contract MainframeToken {
 }
 
 contract MainframeEscrow is Ownable {
+  using SafeMath for uint256;
   address public stakingAddress;
   mapping (address => uint256) public balances;
   MainframeToken token;
@@ -21,14 +23,14 @@ contract MainframeEscrow is Ownable {
 
   function deposit(address _address, uint256 _value) public onlyStakingAddress returns (bool success) {
     token.transferFrom(_address, this, _value);
-    balances[_address] += _value;
+    balances[_address] = balances[_address].add(_value);
     return true;
   }
 
   function withdraw(address _address, uint256 _value) public onlyStakingAddress returns (bool success) {
     require(balances[_address] >= _value);
     token.transfer(_address, _value);
-    balances[_address] -= _value;
+    balances[_address] = balances[_address].sub(_value);
     return true;
   }
 

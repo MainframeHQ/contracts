@@ -3,6 +3,7 @@ pragma solidity ^0.4.18;
 import "./MainframeEscrow.sol";
 
 contract MainframeStake is Ownable {
+  using SafeMath for uint256;
   MainframeEscrow escrow;
 
   uint256 public requiredStake;
@@ -30,7 +31,7 @@ contract MainframeStake is Ownable {
     require(_value == requiredStake);
     require(whitelist[whitelistAddress].owner == 0x0);
 
-    stakers[msg.sender].balance += _value;
+    stakers[msg.sender].balance = stakers[msg.sender].balance.add(_value);
     stakers[msg.sender].addresses.push(whitelistAddress);
     whitelist[whitelistAddress].owner = msg.sender;
     whitelist[whitelistAddress].stake = _value;
@@ -71,7 +72,7 @@ contract MainframeStake is Ownable {
     }
 
     uint256 stake = whitelist[_address].stake;
-    stakers[msg.sender].balance -= stake;
+    stakers[msg.sender].balance = stakers[msg.sender].balance.sub(stake);
 
     // Mutating array by moving last item to deleted item location
     // Inspired by https://medium.com/@robhitchens/solidity-crud-part-2-ed8d8b4f74ec
