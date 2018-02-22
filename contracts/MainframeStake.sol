@@ -27,7 +27,7 @@ contract MainframeStake is Ownable {
     owner = msg.sender;
   }
 
-  function depositAndWhitelist(uint256 _value, address whitelistAddress) public returns (bool success) {
+  function depositAndWhitelist(uint256 _value, address whitelistAddress) external returns (bool success) {
     require(_value == requiredStake);
     require(whitelist[whitelistAddress].owner == 0x0);
 
@@ -41,7 +41,7 @@ contract MainframeStake is Ownable {
     return true;
   }
 
-  function withdrawFullBalance() public returns (bool success) {
+  function withdrawFullBalance() external returns (bool success) {
     require(stakers[msg.sender].balance > 0);
 
     // Remove the whitelisted addresses
@@ -60,7 +60,7 @@ contract MainframeStake is Ownable {
     return true;
   }
 
-  function unwhitelistAddress(address _address) public {
+  function unwhitelistAddress(address _address) external {
     require(whitelist[_address].owner == msg.sender);
 
     uint256 whitelistLength = stakers[msg.sender].addresses.length;
@@ -85,23 +85,23 @@ contract MainframeStake is Ownable {
     Unlisted(msg.sender);
   }
 
-  function balanceOf(address _owner) public view returns (uint256 balance) {
+  function balanceOf(address _owner) external view returns (uint256 balance) {
     return stakers[_owner].balance;
   }
 
-  function totalStaked() public view returns (uint256) {
+  function totalStaked() external view returns (uint256) {
     return escrow.totalBalance();
   }
 
-  function hasStake(address _address) public view returns (bool) {
+  function hasStake(address _address) external view returns (bool) {
     return whitelist[_address].stake > 0;
   }
 
-  function requiredStake() public view returns (uint256) {
+  function requiredStake() external view returns (uint256) {
     return requiredStake;
   }
 
-  function setRequiredStake(uint256 _value) public {
+  function setRequiredStake(uint256 _value) external {
     require(msg.sender == owner);
     requiredStake = _value;
   }

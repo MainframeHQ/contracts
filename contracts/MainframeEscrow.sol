@@ -21,24 +21,24 @@ contract MainframeEscrow is Ownable {
     stakingAddress = msg.sender;
   }
 
-  function deposit(address _address, uint256 _value) public onlyStakingAddress returns (bool success) {
+  function deposit(address _address, uint256 _value) external onlyStakingAddress returns (bool success) {
     token.transferFrom(_address, this, _value);
     balances[_address] = balances[_address].add(_value);
     return true;
   }
 
-  function withdraw(address _address, uint256 _value) public onlyStakingAddress returns (bool success) {
+  function withdraw(address _address, uint256 _value) external onlyStakingAddress returns (bool success) {
     require(balances[_address] >= _value);
     token.transfer(_address, _value);
     balances[_address] = balances[_address].sub(_value);
     return true;
   }
 
-  function balanceOf(address _address) public view returns (uint256 balance) {
+  function balanceOf(address _address) external view returns (uint256 balance) {
     return balances[_address];
   }
 
-  function totalBalance() public view returns (uint256) {
+  function totalBalance() external view returns (uint256) {
     return token.balanceOf(this);
   }
 
