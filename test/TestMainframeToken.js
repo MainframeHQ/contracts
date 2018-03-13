@@ -29,6 +29,12 @@ contract('MainframeToken', (accounts) => {
     assert.equal(owner, accounts[0])
   })
 
+  it('should have correct total supply', async () => {
+    const totalSupply = await token.totalSupply()
+    const expected = new BigNumber(10000000000 * 10**18)
+    assert.equal(expected.toString(), totalSupply.toString())
+  })
+
   it('should assign initial token supply to owner', async () => {
     const ownersBalance = await token.balanceOf.call(accounts[0])
     const expected = new BigNumber(10000000000 * 10**18)
