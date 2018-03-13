@@ -24,6 +24,7 @@ contract MainframeEscrow is Ownable {
   function deposit(address _address, uint256 depositAmount) external onlyStakingAddress returns (bool success) {
     token.transferFrom(_address, this, depositAmount);
     balances[_address] = balances[_address].add(depositAmount);
+    Deposit(_address, depositAmount, balances[_address]);
     return true;
   }
 
@@ -31,6 +32,7 @@ contract MainframeEscrow is Ownable {
     require(balances[_address] >= withdrawAmount);
     token.transfer(_address, withdrawAmount);
     balances[_address] = balances[_address].sub(withdrawAmount);
+    Withdrawal(_address, withdrawAmount, balances[_address]);
     return true;
   }
 
@@ -53,5 +55,7 @@ contract MainframeEscrow is Ownable {
     stakingAddress = newStakingAddress;
   }
 
+  event Deposit(address indexed _address, uint256 depositAmount, uint256 balance);
+  event Withdrawal(address indexed _address, uint256 withdrawAmount, uint256 balance);
   event StakingAddressChanged(address indexed previousStakingAddress, address indexed newStakingAddress);
 }
