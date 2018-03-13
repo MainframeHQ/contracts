@@ -20,12 +20,12 @@ contract MainframeToken is PausableToken {
     Transfer(address(0x0), msg.sender, totalSupply_);
   }
 
-  function transfer(address _to, uint _value) public validDestination(_to) returns (bool) {
-    return super.transfer(_to, _value);
+  function transfer(address to, uint value) public validDestination(to) returns (bool) {
+    return super.transfer(to, value);
   }
 
-  function transferFrom(address _from, address _to, uint _value) public validDestination(_to) returns (bool) {
-    return super.transferFrom(_from, _to, _value);
+  function transferFrom(address from, address to, uint value) public validDestination(to) returns (bool) {
+    return super.transferFrom(from, to, value);
   }
 
   function emergencyERC20Drain(ERC20 token, uint amount) public onlyOwner {

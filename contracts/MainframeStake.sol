@@ -21,22 +21,22 @@ contract MainframeStake is Ownable {
   mapping (address => Staker) public stakers; // maintains balance and addresses of stakers
   mapping (address => WhitelistOwner) public whitelist; // map of whitelisted addresses for efficient hasStaked check
 
-  function MainframeStake(address _escrowAddress) public {
-    escrow = MainframeEscrow(_escrowAddress);
+  function MainframeStake(address escrowAddress) public {
+    escrow = MainframeEscrow(escrowAddress);
     requiredStake = 1 ether; // ether = 10^18
     owner = msg.sender;
   }
 
-  function depositAndWhitelist(uint256 _value, address whitelistAddress) external returns (bool success) {
-    require(_value == requiredStake);
+  function depositAndWhitelist(uint256 value, address whitelistAddress) external returns (bool success) {
+    require(value == requiredStake);
     require(whitelist[whitelistAddress].owner == 0x0);
 
-    stakers[msg.sender].balance = stakers[msg.sender].balance.add(_value);
+    stakers[msg.sender].balance = stakers[msg.sender].balance.add(value);
     stakers[msg.sender].addresses.push(whitelistAddress);
     whitelist[whitelistAddress].owner = msg.sender;
-    whitelist[whitelistAddress].stake = _value;
+    whitelist[whitelistAddress].stake = value;
 
-    escrow.deposit(msg.sender, _value);
+    escrow.deposit(msg.sender, value);
     Whitelisted(msg.sender);
     return true;
   }
@@ -60,18 +60,18 @@ contract MainframeStake is Ownable {
     return true;
   }
 
-  function unwhitelistAddress(address _address) external {
-    require(whitelist[_address].owner == msg.sender);
+  function unwhitelistAddress(address whitelistAddress) external {
+    require(whitelist[whitelistAddress].owner == msg.sender);
 
     uint256 whitelistLength = stakers[msg.sender].addresses.length;
     uint indexToDelete;
     for (uint i = 0; i < whitelistLength; i++) {
-      if (stakers[msg.sender].addresses[i] == _address) {
+      if (stakers[msg.sender].addresses[i] == whitelistAddress) {
         indexToDelete = i;
       }
     }
 
-    uint256 stake = whitelist[_address].stake;
+    uint256 stake = whitelist[whitelistAddress].stake;
     stakers[msg.sender].balance = stakers[msg.sender].balance.sub(stake);
 
     // Mutating array by moving last item to deleted item location
@@ -79,37 +79,37 @@ contract MainframeStake is Ownable {
     address lastItem = stakers[msg.sender].addresses[whitelistLength - 1];
     stakers[msg.sender].addresses[indexToDelete] = lastItem;
     stakers[msg.sender].addresses.length --;
-    delete whitelist[_address];
+    delete whitelist[whitelistAddress];
 
     escrow.withdraw(msg.sender, stake);
     Unlisted(msg.sender);
   }
 
-  function balanceOf(address _owner) external view returns (uint256 balance) {
-    return stakers[_owner].balance;
+  function balanceOf(address owner) external view returns (uint256 balance) {
+    return stakers[owner].balance;
   }
 
   function totalStaked() external view returns (uint256) {
     return escrow.totalBalance();
   }
 
-  function hasStake(address _address) external view returns (bool) {
-    return whitelist[_address].stake > 0;
+  function hasStake(address whitelistAddress) external view returns (bool) {
+    return whitelist[whitelistAddress].stake > 0;
   }
 
   function requiredStake() external view returns (uint256) {
     return requiredStake;
   }
 
-  function setRequiredStake(uint256 _value) external {
+  function setRequiredStake(uint256 value) external {
     require(msg.sender == owner);
-    requiredStake = _value;
+    requiredStake = value;
   }
 
   function getEscrowAddress() public view returns (address) {
     return address(escrow);
   }
 
-  event Whitelisted(address indexed _owner);
-  event Unlisted(address indexed _owner);
+  event Whitelisted(address indexed owner);
+  event Unlisted(address indexed owner);
 }

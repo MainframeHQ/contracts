@@ -15,22 +15,22 @@ contract MainframeEscrow is Ownable {
   mapping (address => uint256) public balances;
   MainframeToken token;
 
-  function MainframeEscrow(address _tokenAddress) public {
-    token = MainframeToken(_tokenAddress);
+  function MainframeEscrow(address tokenAddress) public {
+    token = MainframeToken(tokenAddress);
     owner = msg.sender;
     stakingAddress = msg.sender;
   }
 
-  function deposit(address _address, uint256 _value) external onlyStakingAddress returns (bool success) {
-    token.transferFrom(_address, this, _value);
-    balances[_address] = balances[_address].add(_value);
+  function deposit(address _address, uint256 depositAmount) external onlyStakingAddress returns (bool success) {
+    token.transferFrom(_address, this, depositAmount);
+    balances[_address] = balances[_address].add(depositAmount);
     return true;
   }
 
-  function withdraw(address _address, uint256 _value) external onlyStakingAddress returns (bool success) {
-    require(balances[_address] >= _value);
-    token.transfer(_address, _value);
-    balances[_address] = balances[_address].sub(_value);
+  function withdraw(address _address, uint256 withdrawAmount) external onlyStakingAddress returns (bool success) {
+    require(balances[_address] >= withdrawAmount);
+    token.transfer(_address, withdrawAmount);
+    balances[_address] = balances[_address].sub(withdrawAmount);
     return true;
   }
 
