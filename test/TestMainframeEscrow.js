@@ -1,5 +1,5 @@
-var MainframeToken = artifacts.require('./MainframeToken.sol');
-var MainframeEscrow = artifacts.require('./MainframeEscrow.sol');
+var MainframeToken = artifacts.require('./MainframeToken.sol')
+var MainframeEscrow = artifacts.require('./MainframeEscrow.sol')
 const utils = require('./utils.js')
 
 contract('MainframeEscrow', (accounts) => {
@@ -7,8 +7,8 @@ contract('MainframeEscrow', (accounts) => {
   let escrowContract
 
   beforeEach('setup contracts for each test', async() => {
-    tokenContract = await MainframeToken.new();
-    escrowContract = await MainframeEscrow.new(tokenContract.address);
+    tokenContract = await MainframeToken.new()
+    escrowContract = await MainframeEscrow.new(tokenContract.address)
   })
 
   it('should should deposit successfully', async () => {
@@ -120,7 +120,7 @@ contract('MainframeEscrow', (accounts) => {
     var events = escrowContract.Withdrawal({}, {
       fromBlock: 0,
       toBlock: 'latest',
-    });
+    })
     const passed = await new Promise(async (resolve, reject) => {
       await events.get( (error, logs) => {
         const outstandingBalances = {}

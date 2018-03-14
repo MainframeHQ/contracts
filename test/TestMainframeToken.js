@@ -1,5 +1,5 @@
 const MainframeToken = artifacts.require('./MainframeToken.sol')
-const BigNumber = require('bignumber.js');
+const BigNumber = require('bignumber.js')
 const utils = require('./utils.js')
 
 contract('MainframeToken', (accounts) => {
@@ -8,7 +8,7 @@ contract('MainframeToken', (accounts) => {
   const txAmount = 500
 
   beforeEach('setup contract for each test', async() => {
-    token = await MainframeToken.new();
+    token = await MainframeToken.new()
   })
 
   it('should be named Mainframe Token', async () => {

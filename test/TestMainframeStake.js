@@ -9,9 +9,9 @@ contract('MainframeStake', (accounts) => {
   let stakeContract
 
   beforeEach('setup contracts for each test', async() => {
-    tokenContract = await MainframeToken.new();
-    escrowContract = await MainframeEscrow.new(tokenContract.address);
-    stakeContract = await MainframeStake.new(escrowContract.address);
+    tokenContract = await MainframeToken.new()
+    escrowContract = await MainframeEscrow.new(tokenContract.address)
+    stakeContract = await MainframeStake.new(escrowContract.address)
     escrowContract.changeStakingAddress(stakeContract.address)
   })
 
