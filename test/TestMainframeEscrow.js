@@ -76,6 +76,34 @@ contract('MainframeEscrow', (accounts) => {
     assert.equal(10, totalBalance)
   })
 
+  it('should fail refund of balances called by non owner', async () => {
+    await tokenContract.transfer(accounts[1], 100, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.approve(escrowContract.address, 100, {from: accounts[1], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[1], 100, {from: accounts[0], value: 0, gas: 3000000})
+    const returnBalanceFail = await utils.expectAsyncThrow(async () => {
+      await escrowContract.refundBalances([accounts[1]], {from: accounts[2], value: 0, gas: 3000000})
+    })
+    assert(returnBalanceFail)
+  })
+
+  it('should refund balances if called by owner', async () => {
+    const txAmount = 100
+    await tokenContract.transfer(accounts[1], txAmount, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.transfer(accounts[2], txAmount, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.approve(escrowContract.address, txAmount, {from: accounts[1], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[1], txAmount, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.approve(escrowContract.address, txAmount, {from: accounts[2], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[2], txAmount, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.refundBalances([accounts[1], accounts[2]], {from: accounts[0], value: 0, gas: 3000000})
+    const totalBalance = await escrowContract.totalBalance()
+    const depositor1Balance = await escrowContract.balanceOf(accounts[1])
+    const depositor2Balance = await escrowContract.balanceOf(accounts[1])
+    utils.assertEvent(escrowContract, { event: 'RefundedBalance' })
+    assert.equal(depositor1Balance, 0)
+    assert.equal(depositor2Balance, 0)
+    assert.equal(totalBalance, 0)
+  })
+
   it('should extract correct balances through event logs', async () => {
     await tokenContract.transfer(accounts[1], 1000, {from: accounts[0], value: 0, gas: 3000000})
     await tokenContract.transfer(accounts[2], 1000, {from: accounts[0], value: 0, gas: 3000000})
