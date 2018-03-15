@@ -75,4 +75,37 @@ contract('MainframeEscrow', (accounts) => {
     assert.equal(depositorsBalance, 10)
     assert.equal(10, totalBalance)
   })
+
+  it('should extract correct balances through event logs', async () => {
+    await tokenContract.transfer(accounts[1], 1000, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.transfer(accounts[2], 1000, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.transfer(accounts[3], 1000, {from: accounts[0], value: 0, gas: 3000000})
+    await tokenContract.approve(escrowContract.address, 1000, {from: accounts[1], value: 0, gas: 3000000})
+    await tokenContract.approve(escrowContract.address, 1000, {from: accounts[2], value: 0, gas: 3000000})
+    await tokenContract.approve(escrowContract.address, 1000, {from: accounts[3], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[1], 1000, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.withdraw(accounts[1], 100, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[2], 800, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.withdraw(accounts[2], 200, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[3], 500, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.withdraw(accounts[3], 250, {from: accounts[0], value: 0, gas: 3000000})
+    var events = escrowContract.Withdrawal({}, {
+      fromBlock: 0,
+      toBlock: 'latest',
+    });
+    const passed = await new Promise(async (resolve, reject) => {
+      await events.get( (error, logs) => {
+        const outstandingBalances = {}
+        logs.forEach(l => {
+          outstandingBalances[l.args._address] = l.args.balance.toNumber()
+        })
+        resolve(
+          outstandingBalances[accounts[1]] === 900 &&
+          outstandingBalances[accounts[2]] === 600 &&
+          outstandingBalances[accounts[3]] === 250
+        )
+      })
+    })
+    assert(passed, 'Incorrect balances derived from logs')
+  })
 })
