@@ -1,4 +1,4 @@
-# Mainframe dApp playground
+# Mainframe Contracts
 
 ## Prerequisites
 
