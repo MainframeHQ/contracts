@@ -33,9 +33,7 @@ npm install -g ganache-cli
 ## Usage
 
 * Make sure your blockchain is running (using `ganache-cli` or an alternative).
-* Run `truffle exec scripts/truffle/stake.js` to transfer some tokens to the second account (used in the app) and stake some in the contract (only needed be run once).
-* Run `yarn start` (or `npm run start`) to start the app development server.
-* Open http://localhost:3000/ in your browser.
+* Run `truffle test` to start the test suite.
 
 ### References
 
