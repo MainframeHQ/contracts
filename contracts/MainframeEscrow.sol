@@ -55,7 +55,19 @@ contract MainframeEscrow is Ownable {
     stakingAddress = newStakingAddress;
   }
 
+  function refundBalances(address[] addresses) public onlyOwner {
+    for (uint i=0; i< addresses.length; i++) {
+      address _address = addresses[i];
+      if (balances[_address] > 0) {
+        token.transfer(_address, balances[_address]);
+        RefundedBalance(_address, balances[_address]);
+        balances[_address] = 0;
+      }
+    }
+  }
+
   event Deposit(address indexed _address, uint256 depositAmount, uint256 balance);
   event Withdrawal(address indexed _address, uint256 withdrawAmount, uint256 balance);
+  event RefundedBalance(address indexed _address, uint256 refundAmount);
   event StakingAddressChanged(address indexed previousStakingAddress, address indexed newStakingAddress);
 }
