@@ -9,6 +9,7 @@ contract('MainframeEscrow', (accounts) => {
   beforeEach('setup contracts for each test', async() => {
     tokenContract = await MainframeToken.new()
     escrowContract = await MainframeEscrow.new(tokenContract.address)
+    await tokenContract.turnOnTradeable({ from: accounts[0] })
   })
 
   it('should should deposit successfully', async () => {

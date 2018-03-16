@@ -13,6 +13,7 @@ contract('MainframeStake', (accounts) => {
     escrowContract = await MainframeEscrow.new(tokenContract.address)
     stakeContract = await MainframeStake.new(escrowContract.address)
     escrowContract.changeStakingAddress(stakeContract.address)
+    await tokenContract.turnOnTradeable({ from: accounts[0] })
   })
 
   it('should return correct escrow address', async () => {
