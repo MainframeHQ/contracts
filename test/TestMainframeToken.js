@@ -3,7 +3,9 @@ const BigNumber = require('bignumber.js');
 const utils = require('./utils.js')
 
 contract('MainframeToken', (accounts) => {
+
   let token
+  const txAmount = 500
 
   beforeEach('setup contract for each test', async() => {
     token = await MainframeToken.new();
@@ -55,35 +57,15 @@ contract('MainframeToken', (accounts) => {
     assert(didFail)
   })
 
-  it('should be pausable and unpausable by owner', async () => {
-    await token.pause({ from: accounts[0] })
-    utils.assertEvent(token, { event: 'Pause' })
-    let paused = await token.paused.call()
-    assert.equal(paused, true)
-
-    await token.unpause({ from: accounts[0] })
-    paused = await token.paused.call()
-    assert.equal(paused, false)
-  })
-
-  it('should not be pausable by non owner', async () => {
-    const didFail = await utils.expectAsyncThrow(async () => {
-      await token.pause({ from: accounts[1] })
+  it('should not allow transfer by non owner if tradeable is false ', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const failed = await utils.expectAsyncThrow(async () => {
+      await token.transfer(accounts[2], txAmount, { from: accounts[1] })
     })
-    assert(didFail)
+    assert(failed)
   })
 
-  it('should not be unpausable by non owner', async () => {
-    await token.pause({ from: accounts[0] })
-    const didFail = await utils.expectAsyncThrow(async () => {
-      await token.unpause({ from: accounts[1] })
-    })
-    assert(didFail)
-    await token.unpause({ from: accounts[0] })
-  })
-
-  it('should allow transfer of tokens by owner', async () => {
-    const txAmount = 500
+  it('should allow transfer of tokens by owner when tradeable is false', async () => {
     const starting0Balance = await token.balanceOf(accounts[0])
     const starting1Balance = await token.balanceOf(accounts[1])
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
@@ -96,53 +78,7 @@ contract('MainframeToken', (accounts) => {
     assert.equal(ending1Balance.toString(), expected1Bal.toString(), 'Balance of account 1 incorrect')
   })
 
-  it('should allow transferFrom when address has approved balance', async () => {
-    const txAmount = 500
-    const starting0Balance = await token.balanceOf(accounts[0])
-    const starting1Balance = await token.balanceOf(accounts[1])
-    await token.approve(accounts[1], txAmount, { from: accounts[0] })
-    utils.assertEvent(token, { event: 'Approval' })
-    await token.transferFrom(accounts[0], accounts[1], txAmount, { from: accounts[1] })
-    const ending0Balance = await token.balanceOf(accounts[0])
-    const ending1Balance = await token.balanceOf(accounts[1])
-    assert.equal(ending0Balance.toNumber(), starting0Balance.toNumber() - txAmount, 'Balance of account 0 incorrect')
-    assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() + txAmount, 'Balance of account 1 incorrect')
-  })
-
-  it('should not allow approve when paused', async () => {
-    const txAmount = 500
-    await token.pause({ from: accounts[0] })
-    const didFail = await utils.expectAsyncThrow(async () => {
-      await token.approve(accounts[1], txAmount, { from: accounts[0] })
-    })
-    assert(didFail)
-    await token.unpause({ from: accounts[0] })
-  })
-
-  it('should not allow transfer when paused', async () => {
-    const txAmount = 500
-    await token.pause({ from: accounts[0] })
-    const didFail = await utils.expectAsyncThrow(async () => {
-      await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    })
-    assert(didFail)
-    await token.unpause({ from: accounts[0] })
-  })
-
-  it('should not allow transferFrom when paused', async () => {
-    const txAmount = 500
-    await token.approve(accounts[1], txAmount, { from: accounts[0] })
-    await token.pause({ from: accounts[0] })
-    const didFail = await utils.expectAsyncThrow(async () => {
-      await token.transferFrom(accounts[0], accounts[1], txAmount, { from: accounts[1] })
-    })
-    assert(didFail)
-    await token.unpause({ from: accounts[0] })
-    await token.approve(accounts[1], 0, { from: accounts[0] })
-  })
-
   it('should not allow transfer when to address is invalid', async () => {
-    const txAmount = 500
     const failedNull = await utils.expectAsyncThrow(async () => {
       await token.transfer(null, txAmount, { from: accounts[0] })
     })
@@ -154,15 +90,37 @@ contract('MainframeToken', (accounts) => {
   })
 
   it('should not allow transfer when to address is token contract address', async () => {
-    const txAmount = 500
     const didFail = await utils.expectAsyncThrow(async () => {
       await token.transfer(token.address, txAmount, { from: accounts[0] })
     })
     assert(didFail)
   })
 
+  it('should allow transfer of tokens by anyone when tradeable set to true', async () => {
+    const starting0Balance = await token.balanceOf(accounts[0])
+    const starting2Balance = await token.balanceOf(accounts[2])
+    await token.turnOnTradeable({ from: accounts[0] })
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    utils.assertEvent(token, { event: 'Transfer' })
+    await token.transfer(accounts[2], txAmount, { from: accounts[1] })
+    utils.assertEvent(token, { event: 'Transfer' })
+    const ending0Balance = await token.balanceOf(accounts[0])
+    const ending2Balance = await token.balanceOf(accounts[2])
+    const expected0Bal = starting0Balance.minus(txAmount)
+    const expected2Bal = starting2Balance.plus(txAmount)
+    assert.equal(ending0Balance.toString(), expected0Bal.toString(), 'Balance of account 0 incorrect')
+    assert.equal(ending2Balance.toString(), expected2Bal.toString(), 'Balance of account 1 incorrect')
+  })
+
+  it('should not allow approve by non owner if tradeable is false ', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const failed = await utils.expectAsyncThrow(async () => {
+      await token.approve(accounts[2], 500, { from: accounts[1] })
+    })
+    assert(failed)
+  })
+
   it('should not allow transferFrom when to address is invalid', async () => {
-    const txAmount = 500
     await token.approve(accounts[1], txAmount, { from: accounts[0] })
     const failedNull = await utils.expectAsyncThrow(async () => {
       await token.transferFrom(accounts[0], null, txAmount, { from: accounts[1] })
@@ -176,11 +134,37 @@ contract('MainframeToken', (accounts) => {
   })
 
   it('should not allow transferFrom when to address is contract address', async () => {
-    const txAmount = 500
     await token.approve(accounts[1], txAmount, { from: accounts[0] })
     const didFail = await utils.expectAsyncThrow(async () => {
       await token.transferFrom(accounts[0], token.address, txAmount, { from: accounts[1] })
     })
     assert(didFail)
+  })
+
+  it('should allow transferFrom by owner when tradeable false', async () => {
+    const starting0Balance = await token.balanceOf(accounts[0])
+    const starting1Balance = await token.balanceOf(accounts[1])
+    await token.turnOnTradeable({ from: accounts[0] })
+    await token.approve(accounts[1], txAmount, { from: accounts[0] })
+    utils.assertEvent(token, { event: 'Approval' })
+    await token.transferFrom(accounts[0], accounts[1], txAmount, { from: accounts[1] })
+    const ending0Balance = await token.balanceOf(accounts[0])
+    const ending1Balance = await token.balanceOf(accounts[1])
+    assert.equal(ending0Balance.toNumber(), starting0Balance.toNumber() - txAmount, 'Balance of account 0 incorrect')
+    assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() + txAmount, 'Balance of account 1 incorrect')
+  })
+
+  it('should allow transferFrom by anyone when address has approved balance and tradeable turned on', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[1])
+    const starting1Balance = await token.balanceOf(accounts[2])
+    await token.turnOnTradeable({ from: accounts[0] })
+    await token.approve(accounts[2], txAmount, { from: accounts[1] })
+    utils.assertEvent(token, { event: 'Approval' })
+    await token.transferFrom(accounts[1], accounts[2], txAmount, { from: accounts[2] })
+    const ending0Balance = await token.balanceOf(accounts[1])
+    const ending1Balance = await token.balanceOf(accounts[2])
+    assert.equal(ending0Balance.toNumber(), starting0Balance.toNumber() - txAmount, 'Balance of account 0 incorrect')
+    assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() + txAmount, 'Balance of account 1 incorrect')
   })
 })
