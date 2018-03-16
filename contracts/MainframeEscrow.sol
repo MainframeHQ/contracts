@@ -18,7 +18,6 @@ contract MainframeEscrow is Ownable {
   function MainframeEscrow(address tokenAddress) public {
     token = MainframeToken(tokenAddress);
     owner = msg.sender;
-    stakingAddress = msg.sender;
   }
 
   function deposit(address _address, uint256 depositAmount) external onlyStakingAddress returns (bool success) {
