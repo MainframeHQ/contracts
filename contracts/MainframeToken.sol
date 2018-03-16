@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
-import "zeppelin-solidity/contracts/ownership/ownable.sol";
+import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract MainframeToken is StandardToken, Ownable {
   string public constant name = "Mainframe Token";
