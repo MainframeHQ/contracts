@@ -110,6 +110,10 @@ contract MainframeStake is Ownable {
     return address(escrow);
   }
 
+  function destroy() external onlyOwner {
+    selfdestruct(owner);
+  }
+
   event Whitelisted(address indexed owner);
   event Unlisted(address indexed owner);
 }

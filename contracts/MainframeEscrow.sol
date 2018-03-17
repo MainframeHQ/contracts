@@ -40,7 +40,7 @@ contract MainframeEscrow is Ownable {
     return balances[_address];
   }
 
-  function totalBalance() external view returns (uint256) {
+  function totalBalance() public view returns (uint256) {
     return token.balanceOf(this);
   }
 
@@ -64,6 +64,11 @@ contract MainframeEscrow is Ownable {
         balances[_address] = 0;
       }
     }
+  }
+
+  function destroy() external onlyOwner {
+    require(totalBalance() == 0);
+    selfdestruct(owner);
   }
 
   event Deposit(address indexed _address, uint256 depositAmount, uint256 balance);

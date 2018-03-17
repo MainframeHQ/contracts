@@ -137,4 +137,24 @@ contract('MainframeEscrow', (accounts) => {
     })
     assert(passed, 'Incorrect balances derived from logs')
   })
+
+  it('should successfully destroy itself if balance is unchanged (0)', async () => {
+    await escrowContract.destroy()
+  })
+
+  it('should successfully destroy itself if balance is 0', async () => {
+    await tokenContract.approve(escrowContract.address, 100, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[0], 100, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.withdraw(accounts[0], 100, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.destroy()
+  })
+
+  it('should fail to destroy itself if balance is higher than 0', async () => {
+    await tokenContract.approve(escrowContract.address, 100, {from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.deposit(accounts[0], 100, {from: accounts[0], value: 0, gas: 3000000})
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await escrowContract.destroy()
+    })
+    assert(didFail)
+  })
 })

@@ -146,4 +146,7 @@ contract('MainframeStake', (accounts) => {
     assert.equal(updatedRequiredStake, 10, 'required stake not updated as expected')
   })
 
+  it('should successfully destroy itself', async () => {
+    await escrowContract.destroy()
+  })
 })
