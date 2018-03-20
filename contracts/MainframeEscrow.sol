@@ -12,6 +12,7 @@ contract MainframeToken {
 contract MainframeEscrow is Ownable {
   using SafeMath for uint256;
   address public stakingAddress;
+  uint256 public totalDepositBalance;
   mapping (address => uint256) public balances;
   MainframeToken token;
 
@@ -24,6 +25,7 @@ contract MainframeEscrow is Ownable {
   function deposit(address _address, uint256 depositAmount) external onlyStakingAddress returns (bool success) {
     token.transferFrom(_address, this, depositAmount);
     balances[_address] = balances[_address].add(depositAmount);
+    totalDepositBalance = totalDepositBalance.add(depositAmount);
     Deposit(_address, depositAmount, balances[_address]);
     return true;
   }
@@ -32,6 +34,7 @@ contract MainframeEscrow is Ownable {
     require(balances[_address] >= withdrawAmount);
     token.transfer(_address, withdrawAmount);
     balances[_address] = balances[_address].sub(withdrawAmount);
+    totalDepositBalance = totalDepositBalance.sub(withdrawAmount);
     Withdrawal(_address, withdrawAmount, balances[_address]);
     return true;
   }
@@ -60,10 +63,17 @@ contract MainframeEscrow is Ownable {
       address _address = addresses[i];
       if (balances[_address] > 0) {
         token.transfer(_address, balances[_address]);
+        totalDepositBalance = totalDepositBalance.sub(balances[_address]);
         RefundedBalance(_address, balances[_address]);
         balances[_address] = 0;
       }
     }
+  }
+
+  function drainUnassigned() external onlyOwner {
+    // owner can drain tokens that are sent here by mistake
+    uint drainAmount = totalBalance() - totalDepositBalance;
+    token.transfer(owner, drainAmount);
   }
 
   function destroy() external onlyOwner {
