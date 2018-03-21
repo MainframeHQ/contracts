@@ -151,12 +151,11 @@ contract('MainframeStake', (accounts) => {
   })
 
   it('should successfully drain mistakenly sent tokens', async () => {
-    let totalBalance
     await tokenContract.transfer(stakeContract.address, 100, { from: accounts[0] })
-    totalBalanceBefore = await tokenContract.balanceOf(stakeContract.address)
+    const totalBalanceBefore = await tokenContract.balanceOf(stakeContract.address)
     assert.equal(totalBalanceBefore, 100)
     await stakeContract.emergencyERC20Drain(tokenContract.address, 100, {from: accounts[0], value: 0, gas: 3000000})
-    totalBalanceAfter = await tokenContract.balanceOf(stakeContract.address)
+    const totalBalanceAfter = await tokenContract.balanceOf(stakeContract.address)
     assert.equal(totalBalanceAfter, 0)
   })
 })

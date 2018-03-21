@@ -17,7 +17,7 @@ contract('MainframeEscrow', (accounts) => {
     await escrowContract.deposit(accounts[0], 100, {from: accounts[0], value: 0, gas: 3000000})
     const depositorsBalance = await escrowContract.balanceOf(accounts[0])
     const totalDepositBalance = await escrowContract.totalDepositBalance()
-    const totalBalance = await escrowContract.totalBalance()
+    const totalBalance = await tokenContract.balanceOf(escrowContract.address)
     utils.assertEvent(escrowContract, { event: 'Deposit' })
     assert.equal(depositorsBalance, 100)
     assert.equal(totalBalance, 100)
@@ -38,7 +38,7 @@ contract('MainframeEscrow', (accounts) => {
     await tokenContract.approve(escrowContract.address, 100, {from: accounts[1], value: 0, gas: 3000000})
     await escrowContract.deposit(accounts[1], 100, {from: accounts[0], value: 0, gas: 3000000})
     await escrowContract.withdraw(accounts[1], 100, {from: accounts[0], value: 0, gas: 3000000})
-    const totalBalance = await escrowContract.totalBalance()
+    const totalBalance = await tokenContract.balanceOf(escrowContract.address)
     const depositorsBalance = await escrowContract.balanceOf(accounts[0])
     const totalDepositBalance = await escrowContract.totalDepositBalance()
     utils.assertEvent(escrowContract, { event: 'Deposit' })
@@ -63,7 +63,7 @@ contract('MainframeEscrow', (accounts) => {
     await tokenContract.approve(escrowContract.address, 10, {from: accounts[1], value: 0, gas: 3000000})
     await escrowContract.deposit(accounts[1], 10, {from: stakingAddress, value: 0, gas: 3000000})
 
-    const totalBalance = await escrowContract.totalBalance()
+    const totalBalance = await tokenContract.balanceOf(escrowContract.address)
     const depositorsBalance = await escrowContract.balanceOf(accounts[1])
 
     const depositDidFail = await utils.expectAsyncThrow(async () => {
@@ -100,7 +100,7 @@ contract('MainframeEscrow', (accounts) => {
     await tokenContract.approve(escrowContract.address, txAmount, {from: accounts[2], value: 0, gas: 3000000})
     await escrowContract.deposit(accounts[2], txAmount, {from: accounts[0], value: 0, gas: 3000000})
     await escrowContract.refundBalances([accounts[1], accounts[2]], {from: accounts[0], value: 0, gas: 3000000})
-    const totalBalance = await escrowContract.totalBalance()
+    const totalBalance = await tokenContract.balanceOf(escrowContract.address)
     const depositor1Balance = await escrowContract.balanceOf(accounts[1])
     const depositor2Balance = await escrowContract.balanceOf(accounts[1])
     const totalDepositBalance = await escrowContract.totalDepositBalance()
@@ -181,7 +181,7 @@ contract('MainframeEscrow', (accounts) => {
     await escrowContract.deposit(accounts[0], 100, {from: accounts[0], value: 0, gas: 3000000})
     const depositorsBalance = await escrowContract.balanceOf(accounts[0])
     await tokenContract.transfer(escrowContract.address, 100, { from: accounts[0] })
-    totalBalance = await escrowContract.totalBalance()
+    totalBalance = await tokenContract.balanceOf(escrowContract.address)
     totalDepositBalance = await escrowContract.totalDepositBalance()
     utils.assertEvent(escrowContract, { event: 'Deposit' })
     assert.equal(depositorsBalance, 100)
@@ -189,7 +189,7 @@ contract('MainframeEscrow', (accounts) => {
     assert.equal(totalDepositBalance, 100)
 
     await escrowContract.emergencyERC20Drain(tokenContract.address, {from: accounts[0], value: 0, gas: 3000000})
-    totalBalance = await escrowContract.totalBalance()
+    totalBalance = await tokenContract.balanceOf(escrowContract.address)
     totalDepositBalance = await escrowContract.totalDepositBalance()
     assert.equal(totalDepositBalance, 100)
     assert.equal(totalBalance, 100)

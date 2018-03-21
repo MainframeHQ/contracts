@@ -90,7 +90,7 @@ contract MainframeStake is Ownable {
   }
 
   function totalStaked() external view returns (uint256) {
-    return escrow.totalBalance();
+    return escrow.totalDepositBalance();
   }
 
   function hasStake(address whitelistAddress) external view returns (bool) {

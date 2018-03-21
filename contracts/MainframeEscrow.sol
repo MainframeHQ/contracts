@@ -44,10 +44,6 @@ contract MainframeEscrow is Ownable {
     return balances[_address];
   }
 
-  function totalBalance() public view returns (uint256) {
-    return token.balanceOf(this);
-  }
-
   modifier onlyStakingAddress() {
     require(msg.sender == stakingAddress);
     _;
@@ -75,7 +71,7 @@ contract MainframeEscrow is Ownable {
     // owner can drain tokens that are sent here by mistake
     uint drainAmount;
     if (address(tokenToDrain) == address(token)) {
-      drainAmount = totalBalance() - totalDepositBalance;
+      drainAmount = tokenToDrain.balanceOf(this) - totalDepositBalance;
     } else {
       drainAmount = tokenToDrain.balanceOf(this);
     }
@@ -83,7 +79,7 @@ contract MainframeEscrow is Ownable {
   }
 
   function destroy() external onlyOwner {
-    require(totalBalance() == 0);
+    require(token.balanceOf(this) == 0);
     selfdestruct(owner);
   }
 
