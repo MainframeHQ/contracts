@@ -46,7 +46,7 @@ contract MainframeStake is Ownable {
 
     // Remove the whitelisted addresses
     uint256 whitelistLength = stakers[msg.sender].addresses.length;
-    for (uint i=0; i< whitelistLength; i++) {
+    for (uint256 i = 0; i< whitelistLength; i++) {
       address whitelistAddress = stakers[msg.sender].addresses[i];
       delete whitelist[whitelistAddress];
     }
@@ -64,8 +64,8 @@ contract MainframeStake is Ownable {
     require(whitelist[whitelistAddress].owner == msg.sender);
 
     uint256 whitelistLength = stakers[msg.sender].addresses.length;
-    uint indexToDelete;
-    for (uint i = 0; i < whitelistLength; i++) {
+    uint256 indexToDelete;
+    for (uint256 i = 0; i < whitelistLength; i++) {
       if (stakers[msg.sender].addresses[i] == whitelistAddress) {
         indexToDelete = i;
       }

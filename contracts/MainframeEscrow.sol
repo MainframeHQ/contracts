@@ -56,7 +56,7 @@ contract MainframeEscrow is Ownable {
   }
 
   function refundBalances(address[] addresses) public onlyOwner {
-    for (uint i=0; i< addresses.length; i++) {
+    for (uint256 i = 0; i< addresses.length; i++) {
       address _address = addresses[i];
       if (balances[_address] > 0) {
         token.transfer(_address, balances[_address]);
@@ -69,7 +69,7 @@ contract MainframeEscrow is Ownable {
 
   function emergencyERC20Drain(ERC20 tokenToDrain) public onlyOwner {
     // owner can drain tokens that are sent here by mistake
-    uint drainAmount;
+    uint256 drainAmount;
     if (address(tokenToDrain) == address(token)) {
       drainAmount = tokenToDrain.balanceOf(this) - totalDepositBalance;
     } else {

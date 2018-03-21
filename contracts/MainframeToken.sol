@@ -27,11 +27,11 @@ contract MainframeToken is StandardToken, Ownable {
     Transfer(address(0x0), msg.sender, totalSupply_);
   }
 
-  function transfer(address to, uint value) public validDestination(to) isTradeable returns (bool) {
+  function transfer(address to, uint256 value) public validDestination(to) isTradeable returns (bool) {
     return super.transfer(to, value);
   }
 
-  function transferFrom(address from, address to, uint value) public validDestination(to) isTradeable returns (bool) {
+  function transferFrom(address from, address to, uint256 value) public validDestination(to) isTradeable returns (bool) {
     return super.transferFrom(from, to, value);
   }
 
@@ -43,7 +43,7 @@ contract MainframeToken is StandardToken, Ownable {
     tradable = true;
   }
 
-  function emergencyERC20Drain(ERC20 token, uint amount) public onlyOwner {
+  function emergencyERC20Drain(ERC20 token, uint256 amount) public onlyOwner {
     // owner can drain tokens that are sent here by mistake
     token.transfer(owner, amount);
   }
