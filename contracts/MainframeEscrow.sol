@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "zeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
 
 contract MainframeToken {
   function transferFrom(address from, address to, uint256 value) public returns (bool);
@@ -70,10 +71,15 @@ contract MainframeEscrow is Ownable {
     }
   }
 
-  function drainUnassigned() external onlyOwner {
+  function emergencyERC20Drain(ERC20 tokenToDrain) public onlyOwner {
     // owner can drain tokens that are sent here by mistake
-    uint drainAmount = totalBalance() - totalDepositBalance;
-    token.transfer(owner, drainAmount);
+    uint drainAmount;
+    if (address(tokenToDrain) == address(token)) {
+      drainAmount = totalBalance() - totalDepositBalance;
+    } else {
+      drainAmount = tokenToDrain.balanceOf(this);
+    }
+    tokenToDrain.transfer(owner, drainAmount);
   }
 
   function destroy() external onlyOwner {

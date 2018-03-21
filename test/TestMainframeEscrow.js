@@ -188,7 +188,7 @@ contract('MainframeEscrow', (accounts) => {
     assert.equal(totalBalance, 200)
     assert.equal(totalDepositBalance, 100)
 
-    await escrowContract.drainUnassigned({from: accounts[0], value: 0, gas: 3000000})
+    await escrowContract.emergencyERC20Drain(tokenContract.address, {from: accounts[0], value: 0, gas: 3000000})
     totalBalance = await escrowContract.totalBalance()
     totalDepositBalance = await escrowContract.totalDepositBalance()
     assert.equal(totalDepositBalance, 100)
