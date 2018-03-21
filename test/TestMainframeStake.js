@@ -154,7 +154,7 @@ contract('MainframeStake', (accounts) => {
     await tokenContract.transfer(stakeContract.address, 100, { from: accounts[0] })
     const totalBalanceBefore = await tokenContract.balanceOf(stakeContract.address)
     assert.equal(totalBalanceBefore, 100)
-    await stakeContract.emergencyERC20Drain(tokenContract.address, 100, {from: accounts[0], value: 0, gas: 3000000})
+    await stakeContract.emergencyERC20Drain(tokenContract.address, {from: accounts[0], value: 0, gas: 3000000})
     const totalBalanceAfter = await tokenContract.balanceOf(stakeContract.address)
     assert.equal(totalBalanceAfter, 0)
   })

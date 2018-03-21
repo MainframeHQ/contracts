@@ -110,8 +110,9 @@ contract MainframeStake is Ownable {
     return address(escrow);
   }
 
-  function emergencyERC20Drain(ERC20 token, uint amount) public onlyOwner {
+  function emergencyERC20Drain(ERC20 token) public onlyOwner {
     // owner can drain tokens that are sent here by mistake
+    uint256 amount = token.balanceOf(this);
     token.transfer(owner, amount);
   }
 
