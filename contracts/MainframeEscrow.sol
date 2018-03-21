@@ -2,23 +2,17 @@ pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "zeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
-
-contract MainframeToken {
-  function transferFrom(address from, address to, uint256 value) public returns (bool);
-  function transfer(address to, uint256 value) public returns (bool);
-  function balanceOf(address who) public view returns (uint256);
-}
+import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract MainframeEscrow is Ownable {
   using SafeMath for uint256;
   address public stakingAddress;
   uint256 public totalDepositBalance;
   mapping (address => uint256) public balances;
-  MainframeToken token;
+  ERC20 token;
 
   function MainframeEscrow(address tokenAddress) public {
-    token = MainframeToken(tokenAddress);
+    token = ERC20(tokenAddress);
     owner = msg.sender;
     stakingAddress = msg.sender;
   }
