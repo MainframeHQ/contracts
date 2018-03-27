@@ -46,7 +46,7 @@ contract MainframeStake is Ownable {
 
     // Remove the whitelisted addresses
     uint256 whitelistLength = stakers[msg.sender].addresses.length;
-    for (uint i=0; i< whitelistLength; i++) {
+    for (uint256 i = 0; i< whitelistLength; i++) {
       address whitelistAddress = stakers[msg.sender].addresses[i];
       delete whitelist[whitelistAddress];
     }
@@ -64,8 +64,8 @@ contract MainframeStake is Ownable {
     require(whitelist[whitelistAddress].owner == msg.sender);
 
     uint256 whitelistLength = stakers[msg.sender].addresses.length;
-    uint indexToDelete;
-    for (uint i = 0; i < whitelistLength; i++) {
+    uint256 indexToDelete;
+    for (uint256 i = 0; i < whitelistLength; i++) {
       if (stakers[msg.sender].addresses[i] == whitelistAddress) {
         indexToDelete = i;
       }
@@ -90,7 +90,7 @@ contract MainframeStake is Ownable {
   }
 
   function totalStaked() external view returns (uint256) {
-    return escrow.totalBalance();
+    return escrow.totalDepositBalance();
   }
 
   function hasStake(address whitelistAddress) external view returns (bool) {
@@ -108,6 +108,16 @@ contract MainframeStake is Ownable {
 
   function getEscrowAddress() public view returns (address) {
     return address(escrow);
+  }
+
+  function emergencyERC20Drain(ERC20 token) public onlyOwner {
+    // owner can drain tokens that are sent here by mistake
+    uint256 amount = token.balanceOf(this);
+    token.transfer(owner, amount);
+  }
+
+  function destroy() external onlyOwner {
+    selfdestruct(owner);
   }
 
   event Whitelisted(address indexed owner);

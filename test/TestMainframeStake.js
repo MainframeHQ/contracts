@@ -146,4 +146,16 @@ contract('MainframeStake', (accounts) => {
     assert.equal(updatedRequiredStake, 10, 'required stake not updated as expected')
   })
 
+  it('should successfully destroy itself', async () => {
+    await escrowContract.destroy()
+  })
+
+  it('should successfully drain mistakenly sent tokens', async () => {
+    await tokenContract.transfer(stakeContract.address, 100, { from: accounts[0] })
+    const totalBalanceBefore = await tokenContract.balanceOf(stakeContract.address)
+    assert.equal(totalBalanceBefore, 100)
+    await stakeContract.emergencyERC20Drain(tokenContract.address, {from: accounts[0], value: 0, gas: 3000000})
+    const totalBalanceAfter = await tokenContract.balanceOf(stakeContract.address)
+    assert.equal(totalBalanceAfter, 0)
+  })
 })
