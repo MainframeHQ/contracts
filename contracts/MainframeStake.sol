@@ -1,8 +1,9 @@
 pragma solidity ^0.4.18;
 
 import "./MainframeEscrow.sol";
+import "./StakeInterface.sol";
 
-contract MainframeStake is Ownable {
+contract MainframeStake is Ownable, StakeInterface {
   using SafeMath for uint256;
   MainframeEscrow escrow;
 
@@ -93,8 +94,8 @@ contract MainframeStake is Ownable {
     return escrow.totalDepositBalance();
   }
 
-  function hasStake(address whitelistAddress) external view returns (bool) {
-    return whitelist[whitelistAddress].stake > 0;
+  function hasStake(address _address) external view returns (bool) {
+    return whitelist[_address].stake > 0;
   }
 
   function requiredStake() external view returns (uint256) {
