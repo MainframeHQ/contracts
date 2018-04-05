@@ -4,9 +4,9 @@
   "private": true,
   "dependencies": {
     "bignumber.js": "^6.0.0",
-    "ganache-cli": "^6.0.3",
+    "ganache-cli": "^6.1.0",
     "lodash": "^4.17.5",
-    "truffle": "^4.0.6",
-    "zeppelin-solidity": "1.6.0"
+    "truffle": "^4.1.5",
+    "zeppelin-solidity": "1.8.0"
   }
 }
