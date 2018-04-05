@@ -8,28 +8,22 @@ contract MainframeToken {
 
 contract MainframeTokenDistribution is Ownable {
 
-  uint public numDrops;
-  uint public dropAmount;
+  uint public totalDistributed;
   MainframeToken token;
 
-  event TokenDrop( address receiver, uint amount );
+  event TokensDistributed(address receiver, uint amount);
 
-  function MainframeTokenDistribution (address tokenAddress) {
+  function MainframeTokenDistribution(address tokenAddress) {
     token = MainframeToken(tokenAddress);
   }
 
-  function distributeTokens( MainframeToken token,
-                  address tokenOwner,
-                  address[] recipients,
-                  uint[] amounts ) onlyOwner public {
-
+  function distributeTokens(address tokenOwner, address[] recipients, uint[] amounts) onlyOwner external {
     for( uint i = 0 ; i < recipients.length ; i++ ) {
       if( amounts[i] > 0 ) {
         assert( token.transferFrom( tokenOwner, recipients[i], amounts[i] ) );
-        TokenDrop( recipients[i], amounts[i] );
+        TokensDistributed( recipients[i], amounts[i] );
       }
-      dropAmount += amounts[i];
+      totalDistributed += amounts[i];
     }
-    numDrops += recipients.length;
   }
 }

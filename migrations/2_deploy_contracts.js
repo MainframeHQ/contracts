@@ -11,7 +11,6 @@ module.exports = (deployer, network) => {
   }).then(() => {
     return deployer.deploy(MainframeStake, MainframeEscrow.address)
   }).then(() => {
-    console.log(MainframeToken)
     return deployer.deploy(MainframeTokenDistribution, MainframeToken.address)
   })
 }
