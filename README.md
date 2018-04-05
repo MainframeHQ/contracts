@@ -1,6 +1,8 @@
-# Mainframe dApp playground
+# Mainframe Contracts
 
-## Prerequisites
+## Setup Truffle
+
+### Prerequisites
 
 * [node](https://nodejs.org/en/) v8+ (includes npm)
 * [Yarn](https://yarnpkg.com/lang/en/) (optional - faster alternative to npm)
@@ -30,14 +32,14 @@ npm install -g ganache-cli
 * Run `truffle console` to start the console. It will use the configuration from the [truffle.js](truffle.js) file, so you may need to customise this configuration if you are not using Ganache.
 * In the Truffle console, run `compile` then `migrate` to setup the smart contracts on the blockchain.
 
-## Usage
+## Running Tests
 
-* Make sure your blockchain is running (using `ganache-cli` or an alternative).
-* Run `truffle exec scripts/truffle/stake.js` to transfer some tokens to the second account (used in the app) and stake some in the contract (only needed be run once).
-* Run `yarn start` (or `npm run start`) to start the app development server.
-* Open http://localhost:3000/ in your browser.
+* Run `truffle test` to start the test suite.
 
 ### References
 
 * [Truffle documentation](http://truffleframework.com/docs/) for smart contracts development.
-* [Create React App documentation](https://github.com/facebook/create-react-app) for app development.
+
+## License
+
+[MIT](LICENSE)
