@@ -21,6 +21,11 @@ contract('MainframeStake', (accounts) => {
     assert.equal(escrowAddress, escrowContract.address)
   })
 
+  it('should assign creator as owner', async () => {
+    const owner = await stakeContract.owner.call()
+    assert.equal(owner, accounts[0])
+  })
+
   it('should set correct required stake', async () => {
     const requiredStake = await stakeContract.requiredStake()
     const expected = '1000000000000000000'
@@ -47,13 +52,6 @@ contract('MainframeStake', (accounts) => {
     assert(hasStake)
     assert.equal(stakersBalance.toNumber(), requiredStake)
     assert.equal(totalStaked.toNumber(), requiredStake)
-
-    // Reset
-    await stakeContract.withdrawFullBalance({ from: accounts[0], value: 0, gas: 3000000 })
-    const hasStakedAfterReset = await stakeContract.hasStake(accounts[0])
-    utils.assertEvent(stakeContract, { event: 'Unlisted' })
-
-    assert.equal(hasStakedAfterReset, false)
   })
 
   it('should unwhitelist address and return stake', async () => {
@@ -94,33 +92,6 @@ contract('MainframeStake', (accounts) => {
       await stakeContract.depositAndWhitelist(200, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
     })
     assert(didFail)
-  })
-
-  it('should withdraw whole balance and remove all of the senders whitelisted addresses', async () => {
-    const requiredStake = await stakeContract.requiredStake()
-    await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
-    await stakeContract.depositAndWhitelist(requiredStake, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
-    await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
-    await stakeContract.depositAndWhitelist(requiredStake, accounts[1], { from: accounts[0], value: 0, gas: 3000000 })
-    const totalStaked = await stakeContract.totalStaked()
-    const stakersBalance = await stakeContract.balanceOf(accounts[0])
-    const account1HasStake = await stakeContract.hasStake(accounts[0])
-    const account2HasStake = await stakeContract.hasStake(accounts[1])
-    assert(account1HasStake, 'account 1 has no stake')
-    assert(account2HasStake, 'account 1 has no stake')
-    assert.equal(stakersBalance, requiredStake.toNumber() * 2, 'incorrect contract balance')
-    assert.equal(totalStaked, requiredStake.toNumber() * 2, 'incorrect staker balance')
-
-    await stakeContract.withdrawFullBalance({ from: accounts[0], value: 0, gas: 3000000 })
-    const totalStakedAfter = await stakeContract.totalStaked()
-    const stakersBalanceAfter = await stakeContract.balanceOf(accounts[0])
-    const account1HasStakeAfter = await stakeContract.hasStake(accounts[0])
-    const account2HasStakeAfter = await stakeContract.hasStake(accounts[1])
-
-    assert(!account1HasStakeAfter, 'account 1 should have no stake')
-    assert(!account2HasStakeAfter, 'account 2 should have no stake')
-    assert.equal(totalStakedAfter, 0)
-    assert.equal(0, stakersBalanceAfter)
   })
 
   it('should fail withdraw if balance too low', async () => {
