@@ -6,12 +6,12 @@ import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 contract MainframeTokenDistribution is Ownable {
 
   uint public totalDistributed;
-  ERC20 token;
+  ERC20 mainframeToken;
 
   event TokensDistributed(address receiver, uint amount);
 
   function MainframeTokenDistribution(address tokenAddress) public {
-    token = ERC20(tokenAddress);
+    mainframeToken = ERC20(tokenAddress);
   }
 
   function validate(address tokenOwner, address[] recipients, uint[] values) public view returns (bool) {
@@ -20,18 +20,24 @@ contract MainframeTokenDistribution is Ownable {
     for(uint i = 0; i < recipients.length; i++) {
       totalDistributionAmount += values[i];
     }
-    return token.balanceOf(tokenOwner) >= totalDistributionAmount &&
-      token.allowance(tokenOwner, this) >= totalDistributionAmount;
+    return mainframeToken.balanceOf(tokenOwner) >= totalDistributionAmount &&
+      mainframeToken.allowance(tokenOwner, this) >= totalDistributionAmount;
   }
 
   function distributeTokens(address tokenOwner, address[] recipients, uint[] values) onlyOwner external {
     require(validate(tokenOwner, recipients, values));
     for(uint i = 0; i < recipients.length; i++) {
       if(values[i] > 0) {
-        require(token.transferFrom(tokenOwner, recipients[i], values[i]));
+        require(mainframeToken.transferFrom(tokenOwner, recipients[i], values[i]));
         TokensDistributed(recipients[i], values[i]);
         totalDistributed += values[i];
       }
     }
+  }
+
+  function emergencyERC20Drain(ERC20 token) public onlyOwner {
+    // owner can drain tokens that are sent here by mistake
+    uint256 amount = token.balanceOf(this);
+    token.transfer(owner, amount);
   }
 }

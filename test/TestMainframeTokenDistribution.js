@@ -68,4 +68,14 @@ contract('MainframeTokenDistribution', (accounts) => {
     assert.equal(balance3.toString(), amounts[2])
     utils.assertEvent(distributionContract, { event: 'TokensDistributed' })
   })
+
+  it('should successfully drain mistakenly sent tokens', async () => {
+    await tokenContract.turnOnTradeable({ from: accounts[0] })
+    await tokenContract.transfer(distributionContract.address, 100, { from: accounts[0] })
+    const totalBalanceBefore = await tokenContract.balanceOf(distributionContract.address)
+    assert.equal(totalBalanceBefore, 100)
+    await distributionContract.emergencyERC20Drain(tokenContract.address, {from: accounts[0], value: 0, gas: 3000000})
+    const totalBalanceAfter = await tokenContract.balanceOf(distributionContract.address)
+    assert.equal(totalBalanceAfter, 0)
+  })
 })
