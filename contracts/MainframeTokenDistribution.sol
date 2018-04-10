@@ -1,17 +1,17 @@
 pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./MainframeToken.sol";
+import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract MainframeTokenDistribution is Ownable {
 
   uint public totalDistributed;
-  MainframeToken token;
+  ERC20 token;
 
   event TokensDistributed(address receiver, uint amount);
 
   function MainframeTokenDistribution(address tokenAddress) public {
-    token = MainframeToken(tokenAddress);
+    token = ERC20(tokenAddress);
   }
 
   function validate(address tokenOwner, address[] recipients, uint[] values) public view returns (bool) {

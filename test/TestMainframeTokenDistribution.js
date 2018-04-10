@@ -2,7 +2,7 @@ const MainframeDistribution = artifacts.require('./MainframeTokenDistribution.so
 const MainframeToken = artifacts.require('./MainframeToken.sol')
 const utils = require('./utils.js')
 
-contract('MainframeAirDrop', (accounts) => {
+contract('MainframeTokenDistribution', (accounts) => {
 
   let tokenContract
   let distributionContract
