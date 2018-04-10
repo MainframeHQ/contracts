@@ -1,10 +1,7 @@
 pragma solidity ^0.4.18;
 
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-
-contract MainframeToken {
-  function transferFrom(address from, address to, uint256 value) public returns (bool);
-}
+import "./MainframeToken.sol";
 
 contract MainframeTokenDistribution is Ownable {
 
@@ -13,17 +10,28 @@ contract MainframeTokenDistribution is Ownable {
 
   event TokensDistributed(address receiver, uint amount);
 
-  function MainframeTokenDistribution(address tokenAddress) {
+  function MainframeTokenDistribution(address tokenAddress) public {
     token = MainframeToken(tokenAddress);
   }
 
-  function distributeTokens(address tokenOwner, address[] recipients, uint[] amounts) onlyOwner external {
-    for( uint i = 0 ; i < recipients.length ; i++ ) {
-      if( amounts[i] > 0 ) {
-        assert( token.transferFrom( tokenOwner, recipients[i], amounts[i] ) );
-        TokensDistributed( recipients[i], amounts[i] );
+  function validate(address tokenOwner, address[] recipients, uint[] values) public view returns (bool) {
+    require(recipients.length == values.length);
+    uint totalDistributionAmount = 0;
+    for(uint i = 0; i < recipients.length; i++) {
+      totalDistributionAmount += values[i];
+    }
+    return token.balanceOf(tokenOwner) >= totalDistributionAmount &&
+      token.allowance(tokenOwner, this) >= totalDistributionAmount;
+  }
+
+  function distributeTokens(address tokenOwner, address[] recipients, uint[] values) onlyOwner external {
+    require(validate(tokenOwner, recipients, values));
+    for(uint i = 0; i < recipients.length; i++) {
+      if(values[i] > 0) {
+        require(token.transferFrom(tokenOwner, recipients[i], values[i]));
+        TokensDistributed(recipients[i], values[i]);
+        totalDistributed += values[i];
       }
-      totalDistributed += amounts[i];
     }
   }
 }
