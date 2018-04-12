@@ -63,7 +63,7 @@ contract MainframeEscrow is Ownable {
     // owner can drain tokens that are sent here by mistake
     uint256 drainAmount;
     if (address(tokenToDrain) == address(token)) {
-      drainAmount = tokenToDrain.balanceOf(this) - totalDepositBalance;
+      drainAmount = tokenToDrain.balanceOf(this).sub(totalDepositBalance);
     } else {
       drainAmount = tokenToDrain.balanceOf(this);
     }
