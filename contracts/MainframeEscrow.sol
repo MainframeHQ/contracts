@@ -49,7 +49,7 @@ contract MainframeEscrow is Ownable {
   }
 
   function refundBalances(address[] addresses) public onlyOwner {
-    for (uint256 i = 0; i< addresses.length; i++) {
+    for (uint256 i = 0; i < addresses.length; i++) {
       address _address = addresses[i];
       if (balances[_address] > 0) {
         token.transfer(_address, balances[_address]);
