@@ -49,14 +49,13 @@ contract MainframeEscrow is Ownable {
   }
 
   function refundBalances(address[] addresses) public onlyOwner {
-    for (uint256 i = 0; i< addresses.length; i++) {
+    for (uint256 i = 0; i < addresses.length; i++) {
       address _address = addresses[i];
-      if (balances[_address] > 0) {
-        token.transfer(_address, balances[_address]);
-        totalDepositBalance = totalDepositBalance.sub(balances[_address]);
-        RefundedBalance(_address, balances[_address]);
-        balances[_address] = 0;
-      }
+      require(balances[_address] > 0);
+      token.transfer(_address, balances[_address]);
+      totalDepositBalance = totalDepositBalance.sub(balances[_address]);
+      RefundedBalance(_address, balances[_address]);
+      balances[_address] = 0;
     }
   }
 
@@ -64,7 +63,7 @@ contract MainframeEscrow is Ownable {
     // owner can drain tokens that are sent here by mistake
     uint256 drainAmount;
     if (address(tokenToDrain) == address(token)) {
-      drainAmount = tokenToDrain.balanceOf(this) - totalDepositBalance;
+      drainAmount = tokenToDrain.balanceOf(this).sub(totalDepositBalance);
     } else {
       drainAmount = tokenToDrain.balanceOf(this);
     }
