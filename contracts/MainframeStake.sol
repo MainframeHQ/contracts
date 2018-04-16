@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "./MainframeEscrow.sol";
 import "./StakeInterface.sol";
@@ -29,7 +29,7 @@ contract MainframeStake is Ownable, StakeInterface {
     whitelist[whitelistAddress].stake = value;
 
     escrow.deposit(msg.sender, value);
-    Whitelisted(msg.sender);
+    emit Whitelisted(msg.sender);
     return true;
   }
 
@@ -40,7 +40,7 @@ contract MainframeStake is Ownable, StakeInterface {
     delete whitelist[whitelistAddress];
 
     escrow.withdraw(msg.sender, stake);
-    Unlisted(msg.sender);
+    emit Unlisted(msg.sender);
   }
 
   function balanceOf(address owner) external view returns (uint256 balance) {
