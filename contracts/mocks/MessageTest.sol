@@ -5,7 +5,7 @@ contract MessageTest {
   event ShowMessage(string message);
 
   function showMessage(string message) public returns (bool) {
-    ShowMessage(message);
+    emit ShowMessage(message);
     return true;
   }
 }

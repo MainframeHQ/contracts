@@ -24,7 +24,7 @@ contract MainframeToken is ERC827Token, Ownable {
     // assign the total tokens to mainframe
     totalSupply_ = 10000000000 ether; // 10 billion, 18 decimals (ether = 10^18)
     balances[msg.sender] = totalSupply_;
-    Transfer(address(0x0), msg.sender, totalSupply_);
+    emit Transfer(address(0x0), msg.sender, totalSupply_);
   }
 
   // ERC20 Methods
