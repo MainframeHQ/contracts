@@ -1,9 +1,9 @@
 pragma solidity ^0.4.18;
 
-import "zeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
+import "zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract MainframeToken is StandardToken, Ownable {
+contract MainframeToken is ERC827Token, Ownable {
   string public constant name = "Mainframe Token";
   string public constant symbol = "MFT";
   uint8  public constant decimals = 18;
@@ -27,6 +27,8 @@ contract MainframeToken is StandardToken, Ownable {
     Transfer(address(0x0), msg.sender, totalSupply_);
   }
 
+  // ERC20 Methods
+
   function transfer(address to, uint256 value) public validDestination(to) isTradeable returns (bool) {
     return super.transfer(to, value);
   }
@@ -37,6 +39,20 @@ contract MainframeToken is StandardToken, Ownable {
 
   function approve(address spender, uint256 value) public isTradeable returns (bool) {
     return super.approve(spender, value);
+  }
+
+  // ERC827 Methods
+
+  function transfer(address to, uint256 value, bytes data) public validDestination(to) isTradeable returns (bool) {
+    return super.transfer(to, value, data);
+  }
+
+  function transferFrom(address from, address to, uint256 value, bytes data) public validDestination(to) isTradeable returns (bool) {
+    return super.transferFrom(from, to, value, data);
+  }
+
+  function approve(address spender, uint256 value, bytes data) public isTradeable returns (bool) {
+    return super.approve(spender, value, data);
   }
 
   function turnOnTradeable() public onlyOwner {
