@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -20,7 +20,7 @@ contract MainframeEscrow is Ownable {
     token.transferFrom(_address, this, depositAmount);
     balances[_address] = balances[_address].add(depositAmount);
     totalDepositBalance = totalDepositBalance.add(depositAmount);
-    Deposit(_address, depositAmount, balances[_address]);
+    emit Deposit(_address, depositAmount, balances[_address]);
     return true;
   }
 
@@ -29,7 +29,7 @@ contract MainframeEscrow is Ownable {
     token.transfer(_address, withdrawAmount);
     balances[_address] = balances[_address].sub(withdrawAmount);
     totalDepositBalance = totalDepositBalance.sub(withdrawAmount);
-    Withdrawal(_address, withdrawAmount, balances[_address]);
+    emit Withdrawal(_address, withdrawAmount, balances[_address]);
     return true;
   }
 
@@ -44,7 +44,7 @@ contract MainframeEscrow is Ownable {
 
   function changeStakingAddress(address newStakingAddress) public onlyOwner {
     require(newStakingAddress != address(0));
-    StakingAddressChanged(stakingAddress, newStakingAddress);
+    emit StakingAddressChanged(stakingAddress, newStakingAddress);
     stakingAddress = newStakingAddress;
   }
 
@@ -54,7 +54,7 @@ contract MainframeEscrow is Ownable {
       require(balances[_address] > 0);
       token.transfer(_address, balances[_address]);
       totalDepositBalance = totalDepositBalance.sub(balances[_address]);
-      RefundedBalance(_address, balances[_address]);
+      emit RefundedBalance(_address, balances[_address]);
       balances[_address] = 0;
     }
   }
