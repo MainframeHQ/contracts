@@ -58,7 +58,7 @@ contract('MainframeStake', (accounts) => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0, gas: 3000000 })
     await stakeContract.depositAndWhitelist(requiredStake, accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
-    utils.assertEvent(stakeContract, { event: 'Unlisted' })
+    utils.assertEvent(stakeContract, { event: 'Whitelisted' })
     let totalStaked = await stakeContract.totalStaked()
     let stakersBalance = await stakeContract.balanceOf(accounts[0])
     let hasStake = await stakeContract.hasStake(accounts[0])
@@ -67,6 +67,7 @@ contract('MainframeStake', (accounts) => {
     assert.equal(totalStaked.toNumber(), requiredStake)
 
     await stakeContract.unwhitelistAddress(accounts[0], { from: accounts[0], value: 0, gas: 3000000 })
+    utils.assertEvent(stakeContract, { event: 'Unlisted' })
     totalStaked = await stakeContract.totalStaked()
     stakersBalance = await stakeContract.balanceOf(accounts[0])
     hasStake = await stakeContract.hasStake(accounts[0])
