@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.21;
 
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -20,7 +20,7 @@ contract MainframeEscrow is Ownable {
     token.transferFrom(_address, this, depositAmount);
     balances[_address] = balances[_address].add(depositAmount);
     totalDepositBalance = totalDepositBalance.add(depositAmount);
-    Deposit(_address, depositAmount, balances[_address]);
+    emit Deposit(_address, depositAmount, balances[_address]);
     return true;
   }
 
@@ -29,7 +29,7 @@ contract MainframeEscrow is Ownable {
     token.transfer(_address, withdrawAmount);
     balances[_address] = balances[_address].sub(withdrawAmount);
     totalDepositBalance = totalDepositBalance.sub(withdrawAmount);
-    Withdrawal(_address, withdrawAmount, balances[_address]);
+    emit Withdrawal(_address, withdrawAmount, balances[_address]);
     return true;
   }
 
@@ -44,19 +44,18 @@ contract MainframeEscrow is Ownable {
 
   function changeStakingAddress(address newStakingAddress) public onlyOwner {
     require(newStakingAddress != address(0));
-    StakingAddressChanged(stakingAddress, newStakingAddress);
+    emit StakingAddressChanged(stakingAddress, newStakingAddress);
     stakingAddress = newStakingAddress;
   }
 
   function refundBalances(address[] addresses) public onlyOwner {
-    for (uint256 i = 0; i< addresses.length; i++) {
+    for (uint256 i = 0; i < addresses.length; i++) {
       address _address = addresses[i];
-      if (balances[_address] > 0) {
-        token.transfer(_address, balances[_address]);
-        totalDepositBalance = totalDepositBalance.sub(balances[_address]);
-        RefundedBalance(_address, balances[_address]);
-        balances[_address] = 0;
-      }
+      require(balances[_address] > 0);
+      token.transfer(_address, balances[_address]);
+      totalDepositBalance = totalDepositBalance.sub(balances[_address]);
+      emit RefundedBalance(_address, balances[_address]);
+      balances[_address] = 0;
     }
   }
 
@@ -64,7 +63,7 @@ contract MainframeEscrow is Ownable {
     // owner can drain tokens that are sent here by mistake
     uint256 drainAmount;
     if (address(tokenToDrain) == address(token)) {
-      drainAmount = tokenToDrain.balanceOf(this) - totalDepositBalance;
+      drainAmount = tokenToDrain.balanceOf(this).sub(totalDepositBalance);
     } else {
       drainAmount = tokenToDrain.balanceOf(this);
     }
