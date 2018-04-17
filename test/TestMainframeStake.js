@@ -57,7 +57,8 @@ contract('MainframeStake', (accounts) => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(escrowContract.address, requiredStake, { from: accounts[0], value: 0 })
     await stakeContract.stake(accounts[0], { from: accounts[0], value: 0 })
-    utils.assertEvent(stakeContract, { event: 'Unstaked' })
+    utils.assertEvent(stakeContract, { event: 'Staked' })
+
     let totalStaked = await stakeContract.totalStaked()
     let stakersBalance = await stakeContract.balanceOf(accounts[0])
     let hasStake = await stakeContract.hasStake(accounts[0])
@@ -66,6 +67,7 @@ contract('MainframeStake', (accounts) => {
     assert.equal(totalStaked.toNumber(), requiredStake, 'incorrect total stake value after staking')
 
     await stakeContract.unstake(accounts[0], { from: accounts[0], value: 0 })
+    utils.assertEvent(stakeContract, { event: 'Unstaked' })
     totalStaked = await stakeContract.totalStaked()
     stakersBalance = await stakeContract.balanceOf(accounts[0])
     hasStake = await stakeContract.hasStake(accounts[0])
