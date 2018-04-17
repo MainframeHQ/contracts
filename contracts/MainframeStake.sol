@@ -10,7 +10,7 @@ contract MainframeStake is Ownable, StakeInterface {
   uint256 public requiredStake;
 
   struct Staker {
-    uint256 stake;
+    uint256 stakedAmount;
     address stakerAddress;
   }
 
@@ -25,7 +25,7 @@ contract MainframeStake is Ownable, StakeInterface {
     require(whitelist[whitelistAddress].stakerAddress == 0x0);
 
     whitelist[whitelistAddress].stakerAddress = msg.sender;
-    whitelist[whitelistAddress].stake = requiredStake;
+    whitelist[whitelistAddress].stakedAmount = requiredStake;
 
     escrow.deposit(msg.sender, requiredStake);
     emit Staked(msg.sender);
@@ -35,10 +35,10 @@ contract MainframeStake is Ownable, StakeInterface {
   function unstake(address whitelistAddress) external {
     require(whitelist[whitelistAddress].stakerAddress == msg.sender);
 
-    uint256 stake = whitelist[whitelistAddress].stake;
+    uint256 stakedAmount = whitelist[whitelistAddress].stakedAmount;
     delete whitelist[whitelistAddress];
 
-    escrow.withdraw(msg.sender, stake);
+    escrow.withdraw(msg.sender, stakedAmount);
     emit Unstaked(msg.sender);
   }
 
@@ -51,7 +51,7 @@ contract MainframeStake is Ownable, StakeInterface {
   }
 
   function hasStake(address _address) external view returns (bool) {
-    return whitelist[_address].stake > 0;
+    return whitelist[_address].stakedAmount > 0;
   }
 
   function requiredStake() external view returns (uint256) {
