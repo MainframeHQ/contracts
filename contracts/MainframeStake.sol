@@ -9,38 +9,37 @@ contract MainframeStake is Ownable, StakeInterface {
 
   uint256 public requiredStake;
 
-  struct WhitelistOwner {
-    uint256 stake;
-    address owner;
+  struct Staker {
+    uint256 stakedAmount;
+    address stakerAddress;
   }
 
-  mapping (address => WhitelistOwner) public whitelist; // map of whitelisted addresses for efficient hasStaked check
+  mapping (address => Staker) public whitelist; // map of whitelisted addresses for efficient hasStaked check
 
   function MainframeStake(address escrowAddress) public {
     escrow = MainframeEscrow(escrowAddress);
     requiredStake = 1 ether; // ether = 10^18
   }
 
-  function depositAndWhitelist(uint256 value, address whitelistAddress) external returns (bool success) {
-    require(value == requiredStake);
-    require(whitelist[whitelistAddress].owner == 0x0);
+  function stake(address whitelistAddress) external returns (bool success) {
+    require(whitelist[whitelistAddress].stakerAddress == 0x0);
 
-    whitelist[whitelistAddress].owner = msg.sender;
-    whitelist[whitelistAddress].stake = value;
+    whitelist[whitelistAddress].stakerAddress = msg.sender;
+    whitelist[whitelistAddress].stakedAmount = requiredStake;
 
-    escrow.deposit(msg.sender, value);
-    emit Whitelisted(msg.sender);
+    escrow.deposit(msg.sender, requiredStake);
+    emit Staked(msg.sender);
     return true;
   }
 
-  function unwhitelistAddress(address whitelistAddress) external {
-    require(whitelist[whitelistAddress].owner == msg.sender);
+  function unstake(address whitelistAddress) external {
+    require(whitelist[whitelistAddress].stakerAddress == msg.sender);
 
-    uint256 stake = whitelist[whitelistAddress].stake;
+    uint256 stakedAmount = whitelist[whitelistAddress].stakedAmount;
     delete whitelist[whitelistAddress];
 
-    escrow.withdraw(msg.sender, stake);
-    emit Unlisted(msg.sender);
+    escrow.withdraw(msg.sender, stakedAmount);
+    emit Unstaked(msg.sender);
   }
 
   function balanceOf(address owner) external view returns (uint256 balance) {
@@ -52,7 +51,7 @@ contract MainframeStake is Ownable, StakeInterface {
   }
 
   function hasStake(address _address) external view returns (bool) {
-    return whitelist[_address].stake > 0;
+    return whitelist[_address].stakedAmount > 0;
   }
 
   function requiredStake() external view returns (uint256) {
@@ -78,6 +77,6 @@ contract MainframeStake is Ownable, StakeInterface {
     selfdestruct(owner);
   }
 
-  event Whitelisted(address indexed owner);
-  event Unlisted(address indexed owner);
+  event Staked(address indexed owner);
+  event Unstaked(address indexed owner);
 }
