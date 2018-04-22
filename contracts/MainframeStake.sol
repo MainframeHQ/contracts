@@ -2,14 +2,14 @@ pragma solidity ^0.4.21;
 
 import "zeppelin-solidity/contracts/math/SafeMath.sol";
 import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "zeppelin-solidity/contracts/token/ERC827/ERC827.sol";
 import "./StakeInterface.sol";
 
 contract MainframeStake is Ownable, StakeInterface {
   using SafeMath for uint256;
   uint256 public totalDepositBalance;
   mapping (address => uint256) public balances;
-  ERC20 token;
+  ERC827 token;
 
   uint256 public requiredStake;
 
@@ -21,7 +21,7 @@ contract MainframeStake is Ownable, StakeInterface {
   mapping (address => Staker) public whitelist; // map of whitelisted addresses for efficient hasStaked check
 
   function MainframeStake(address tokenAddress) public {
-    token = ERC20(tokenAddress);
+    token = ERC827(tokenAddress);
     requiredStake = 1 ether; // ether = 10^18
   }
 
@@ -109,6 +109,13 @@ contract MainframeStake is Ownable, StakeInterface {
   function destroy() external onlyOwner {
     require(token.balanceOf(this) == 0);
     selfdestruct(owner);
+  }
+
+  event ShowMessage(string message);
+
+  function showMessage(string message) public returns (bool) {
+    emit ShowMessage(message);
+    return true;
   }
 
   event Staked(address indexed owner);

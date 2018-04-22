@@ -1,4 +1,5 @@
 const MainframeToken = artifacts.require('./MainframeToken.sol')
+const MainframeStake = artifacts.require('./MainframeStake.sol')
 const MessageTest = artifacts.require('./MessageTest.sol')
 const BigNumber = require('bignumber.js')
 const utils = require('./utils.js')
@@ -7,10 +8,12 @@ const ethjsABI = require('ethjs-abi')
 contract('MainframeToken', (accounts) => {
 
   let token
-  const txAmount = 500
+  let stakeContract
+  let txAmount = 500
 
   beforeEach('setup contract for each test', async() => {
     token = await MainframeToken.new()
+    stakeContract = await MainframeStake.new(token.address)
   })
 
   it('should be named Mainframe Token', async () => {
@@ -300,5 +303,33 @@ contract('MainframeToken', (accounts) => {
     await token.sendTransaction({from: accounts[2], data: transferData})
     const account1Bal = await token.balanceOf(accounts[2])
     assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed for owner when tradeable set to false')
+  })
+
+  it('should approve (with data) correct allowance by owner when tradeable is false ', async () => {
+    const messageTest = await MessageTest.new();
+    const extraData = messageTest.contract.showMessage.getData(`account 0 approved ${txAmount} for messageTest contract`)
+    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
+    const args = [messageTest.address, txAmount, extraData]
+    const transferData = ethjsABI.encodeMethod(abiMethod, args)
+    await token.sendTransaction({from: accounts[0], data: transferData})
+    await utils.assertEvent(token, { event: 'Approval' })
+    await utils.assertEvent(messageTest, { event: 'ShowMessage' })
+    const allowance = await token.allowance(accounts[0], messageTest.address)
+    assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when tradeable false')
+  })
+
+  it('should allow approve and transfer in one transaction', async () => {
+    const requiredStake = await stakeContract.requiredStake()
+    const sender = accounts[0]
+    await token.turnOnTradeable({ from: sender })
+
+    const extraData = stakeContract.contract.stake.getData(sender)
+    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
+    const args = [stakeContract.address, requiredStake, extraData]
+    const approvalData = ethjsABI.encodeMethod(abiMethod, args)
+    const transaction = await token.sendTransaction({from: sender, data: approvalData})
+    await utils.assertEvent(token, { event: 'Approval' })
+    await utils.assertEvent(token, { event: 'Transfer' })
+    assert.equal(stakeContract.totalStaked(), requiredStake)
   })
 })

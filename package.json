@@ -4,9 +4,10 @@
   "private": true,
   "dependencies": {
     "bignumber.js": "^6.0.0",
+    "ethjs-abi": "^0.2.1",
     "ganache-cli": "^6.1.0",
     "lodash": "^4.17.5",
     "truffle": "^4.1.5",
-    "zeppelin-solidity": "1.8.0"
+    "zeppelin-solidity": "https://github.com/k06a/zeppelin-solidity.git#feature/payable-erc827"
   }
 }

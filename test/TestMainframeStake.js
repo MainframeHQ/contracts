@@ -1,5 +1,7 @@
 const MainframeToken = artifacts.require('./MainframeToken.sol')
 const MainframeStake = artifacts.require('./MainframeStake.sol')
+const MessageTest = artifacts.require('./MessageTest.sol')
+const ethjsABI = require('ethjs-abi')
 const utils = require('./utils.js')
 
 contract('MainframeStake', (accounts) => {

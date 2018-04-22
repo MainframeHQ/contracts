@@ -43,20 +43,28 @@ contract MainframeToken is ERC827Token, Ownable {
 
   // ERC827 Methods
 
-  function transfer(address to, uint256 value, bytes data) public validDestination(to) isTradeable returns (bool) {
+  function transfer(address to, uint256 value, bytes data) public payable returns (bool) {
     return super.transfer(to, value, data);
   }
 
-  function transferFrom(address from, address to, uint256 value, bytes data) public validDestination(to) isTradeable returns (bool) {
+  function transferFrom(address from, address to, uint256 value, bytes data) public payable returns (bool) {
     return super.transferFrom(from, to, value, data);
   }
 
-  function approve(address spender, uint256 value, bytes data) public isTradeable returns (bool) {
+  function approve(address spender, uint256 value, bytes data) public payable returns (bool) {
     return super.approve(spender, value, data);
   }
 
   function turnOnTradeable() public onlyOwner {
     tradable = true;
+  }
+
+
+  event ShowMessage(string message);
+
+  function showMessage(string message) public returns (bool) {
+    emit ShowMessage(message);
+    return true;
   }
 
   function emergencyERC20Drain(ERC20 token, uint256 amount) public onlyOwner {
