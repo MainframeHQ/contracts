@@ -8,10 +8,10 @@ const { log } = require('./cli-utils')
 const GAS_LIMIT = 300000
 const GAS_PRICE = utils.toWei('20', 'gwei')
 
-const callCustomHandler = (contractName, method, web3, ethNetwork) => {
+const callCustomHandler = (contractName, method, web3Contract, ethNetwork, account) => {
   const customHandler = customHandlers[contractName]
   if (customHandler && customHandler[method]) {
-    customHandler[method](web3, ethNetwork)
+    customHandler[method](web3Contract, ethNetwork, account)
     return true
   }
 }
@@ -32,8 +32,20 @@ const getWeb3Contract = async (name, abi, web3, ethNetwork) => {
   return new web3.eth.Contract(abi, contractAddress)
 }
 
-const callMethod = async (web3Contract, contractName, method, web3, ethNetwork) => {
-  if (callCustomHandler(contractName, method, web3, ethNetwork)) {
+const callMethod = async (
+  web3Contract,
+  contractName,
+  method,
+  account,
+  ethNetwork
+) => {
+  if (callCustomHandler(
+    contractName,
+    method,
+    web3Contract,
+    ethNetwork,
+    account)
+  ) {
     return
   }
   const abiMethod = web3Contract._jsonInterface.find(m => m.name == method)
@@ -43,7 +55,7 @@ const callMethod = async (web3Contract, contractName, method, web3, ethNetwork) 
       name : m.name,
       message : `Enter ${m.name} (${m.type}): `,
     }
-    // If it's uint, ask if it needs unit conversion
+    // If uint, ask if it needs unit conversion
     if (m.type.slice(0, 4) === 'uint') {
       q.extraQuestions = [
         {
@@ -84,10 +96,10 @@ const callMethod = async (web3Contract, contractName, method, web3, ethNetwork) 
   const methodType = abiMethod.stateMutability === 'view' ? 'call' : 'send'
   // TODO: - Check it's only view that doesn't require send
 
-  const account = await web3.eth.getCoinbase()
-
   if (methodType === 'send') {
     const validateMessage = `
+      Network: ${ethNetwork}
+
       Calling method: ${method}
       On contract: ${web3Contract._address}
       With args: ${args}

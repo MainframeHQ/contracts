@@ -14,48 +14,61 @@ const config = require('./config')
 const contract = require('./contract')
 const { log, capitalize } = require('./cli-utils')
 
+const LEDGER_ROOT_PATH = `44'/60'/0'/0`
+
 var web3
 var ethNetwork = 'testnet' // testnet or mainnet
+var account
 
 const determineNetwork = async () => {
   const answers = await prompt([{
-    type : 'list',
-    name : 'network',
-    message : 'Select Ethereum network: ',
-    choices : ['testnet', 'mainnet']
+    type: 'list',
+    name: 'network',
+    message: 'Select Ethereum network: ',
+    choices: ['testnet', 'mainnet']
   }])
   ethNetwork = answers.network
 }
 
 const requestPrivateKey = async () => {
   const answers = await prompt([{
-    type : 'password',
-    name : 'privateKey',
-    message : 'Enter private key: ',
+    type: 'password',
+    name: 'privateKey',
+    message: 'Enter private key: ',
   }])
   return answers.privateKey
 }
 
 const requestMnemonic = async () => {
   const answers = await prompt([{
-    type : 'password',
-    name : 'mnemonic',
-    message : 'Enter mnemonic passphrase: ',
+    type: 'password',
+    name: 'mnemonic',
+    message: 'Enter mnemonic passphrase: ',
   }])
   return answers.mnemonic
+}
+
+const requestAccountSelection = async (accounts) => {
+  const answers = await prompt([{
+    type: 'list',
+    name: 'account',
+    message: 'Select ETH account: ',
+    choices: accounts,
+  }])
+  return accounts.indexOf(answers.account)
 }
 
 const decodeKeystore = async() => {
   const answers = await prompt([
     {
-      type : 'input',
-      name : 'keystorePath',
-      message : 'Enter path of keystore file: ',
+      type: 'input',
+      name: 'keystorePath',
+      message: 'Enter path of keystore file: ',
     },
     {
-      type : 'input',
-      name : 'password',
-      message : 'Enter password to decrypt file: ',
+      type: 'input',
+      name: 'password',
+      message: 'Enter password to decrypt file: ',
     }
   ])
   const file = await JSON.parse(fs.readFileSync(answers.keystorePath))
@@ -66,10 +79,10 @@ const decodeKeystore = async() => {
 
 const requestWalletAccessType = async () => {
   const answers = await prompt([{
-    type : 'list',
-    name : 'wallet',
-    message : 'Wallet source:',
-    choices : ['Private Key', 'Mnemonic', 'Ledger', 'Keystore File'],
+    type: 'list',
+    name: 'wallet',
+    message: 'Wallet source:',
+    choices: ['Private Key', 'Mnemonic', 'Ledger', 'Keystore File'],
   }])
   var provider
   switch (answers.wallet) {
@@ -94,16 +107,26 @@ const requestWalletAccessType = async () => {
     case 'Ledger':
       var engine = new ProviderEngine()
       web3 = new Web3(engine)
-
-      var ledgerWalletSubProvider = await LedgerWalletSubproviderFactory(() => 3, `44'/60'/0'/0`)
-      engine.addProvider(ledgerWalletSubProvider)
-      engine.addProvider(new RpcSubprovider({rpcUrl: config.rpcUrl[ethNetwork]})) // you need RPC endpoint
-      engine.start()
       try {
-        const accounts = await web3.eth.getAccounts()
-        console.log('Ledger accounts: ', accounts)
+        const ledgerWalletSubProvider = await LedgerWalletSubproviderFactory()
+
+        // Select ledger account to use
+        const accounts = await ledgerWalletSubProvider.ledger.getMultipleAccounts(LEDGER_ROOT_PATH, 0, 10)
+        const accountAddresses = Object.values(accounts)
+        const accountPaths = Object.keys(accounts)
+        const account = Object.values(accounts)
+        accountIndex = await requestAccountSelection(accountAddresses)
+        const selectedPath = accountPaths[accountIndex]
+
+        // Set selected account as provider
+        const networkId = ethNetwork === 'testnet' ? 3 : 1
+        var ledgerWalletSelectedProvider = await LedgerWalletSubproviderFactory(() => networkId, selectedPath)
+        engine.addProvider(ledgerWalletSelectedProvider)
+        engine.addProvider(new RpcSubprovider({rpcUrl: config.rpcUrl[ethNetwork]}))
+        engine.start()
       } catch (err) {
-        console.log(`Device not found, please make sure:\n
+        console.log(err)
+        console.log(`Error connecting to Ledger, please make sure:\n
         - You have entered your pin and unlocked your ledger\n
         - Selected Ethereum wallet\n
         - Have browser support turned off`
@@ -112,7 +135,9 @@ const requestWalletAccessType = async () => {
       }
       break
   }
-  const account = await web3.eth.getCoinbase()
+  if (!account) {
+    account = await web3.eth.getCoinbase()
+  }
   log.info(`Using account: ${account}`, 'blue')
 }
 
@@ -124,10 +149,10 @@ const selectMethod = async (web3Contract, contractName) => {
   }, [])
   log.header(`${capitalize(contractName)} Contract`)
   const answers = await prompt([{
-    type : 'list',
-    name : 'method',
-    message : 'Select contract action: ',
-    choices : methods,
+    type: 'list',
+    name: 'method',
+    message: 'Select contract action: ',
+    choices: methods,
   }])
   return answers.method
 }
@@ -135,10 +160,10 @@ const selectMethod = async (web3Contract, contractName) => {
 const selectContractName = async () => {
   const contractNames = await availableContracts()
   const answers = await prompt([{
-    type : 'list',
-    name : 'contract',
-    message : 'Select contract: ',
-    choices : contractNames,
+    type: 'list',
+    name: 'contract',
+    message: 'Select contract: ',
+    choices: contractNames,
   }])
   return answers.contract
 }
@@ -161,17 +186,16 @@ const getWeb3Contract = async (name, web3, ethNetwork) => {
 }
 
 const requestContractMethod = async (web3, ethNetwork) => {
-  const account = await web3.eth.getCoinbase()
   const contractName = await selectContractName()
   const web3Contract = await getWeb3Contract(contractName, web3, ethNetwork)
   const methodName = await selectMethod(web3Contract, contractName)
-  await contract.callMethod(web3Contract, contractName, methodName, web3, ethNetwork)
+  await contract.callMethod(web3Contract, contractName, methodName, account, ethNetwork)
 }
 
 const initialize = async () => {
   try {
-    await requestWalletAccessType()
     await determineNetwork()
+    await requestWalletAccessType()
     await requestContractMethod(web3, ethNetwork)
   } catch (err) {
     log.warn('Error: ' + err.message)

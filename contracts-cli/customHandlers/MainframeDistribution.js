@@ -7,26 +7,20 @@ const config = require('../config')
 const tokenAbi = require('../abi/MainframeDistribution.json')
 const { log } = require('../cli-utils')
 
-const createDistributionContract = (web3, ethNetwork) => {
-  const contractAddress = config.contractAddresses.MainframeDistribution[ethNetwork]
-  return new web3.eth.Contract(tokenAbi, contractAddress)
-}
-
 const distributeTokens = async (
-  web3,
+  web3Contract,
   ethNetwork,
+  account,
 ) => {
   const data = await parseCSV()
-  const accountAddress = await web3.eth.getCoinbase()
-  await validateDistribution(data, accountAddress, ethNetwork)
-  const distroContract = createDistributionContract(web3, ethNetwork)
+  await validateDistribution(data, account, ethNetwork)
   log.info('Pending transaction...', 'blue')
-  const transaction = await distroContract.methods.distributeTokens(
-    accountAddress,
+  const transaction = await web3Contract.methods.distributeTokens(
+    account,
     data.recipients,
     data.amounts,
   ).send({
-    from: accountAddress,
+    from: account,
     gas: 300000,
   })
   log.success('Transaction complete!')
