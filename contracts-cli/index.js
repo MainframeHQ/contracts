@@ -1,10 +1,9 @@
-const Web3 = require('Web3')
+const Web3 = require('web3')
 const fs = require('fs')
 const path = require('path')
 const Accounts = require('web3-eth-accounts')
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const HDWalletProviderPK = require('truffle-hdwallet-provider-privkey')
-const program = require('commander')
 const ProviderEngine = require('web3-provider-engine')
 const RpcSubprovider = require('web3-provider-engine/subproviders/rpc')
 const LedgerWalletSubproviderFactory = require('ledger-wallet-provider').default
@@ -71,7 +70,7 @@ const decodeKeystore = async() => {
       message: 'Enter password to decrypt file: ',
     }
   ])
-  const file = await JSON.parse(fs.readFileSync(answers.keystorePath))
+  const file = JSON.parse(fs.readFileSync(answers.keystorePath))
   const accounts = new Accounts()
   const decrypted = accounts.decrypt(file, answers.password)
   return decrypted.privateKey

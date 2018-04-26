@@ -10,6 +10,6 @@
   },
   "rpcUrl": {
     "testnet": "https://ropsten.infura.io/KWLG1YOMaYgl4wiFlcJv",
-    "mainnet": "https://ropsten.infura.io/KWLG1YOMaYgl4wiFlcJv"
+    "mainnet": "https://mainnet.infura.io/KWLG1YOMaYgl4wiFlcJv"
   }
 }

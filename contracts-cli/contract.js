@@ -22,11 +22,10 @@ const getWeb3Contract = async (name, abi, web3, ethNetwork) => {
     contractAddress = config.contractAddresses[name][ethNetwork]
   } else {
     const answers = await prompt({
-      type : 'input',
-      name : 'address',
-      message : 'Enter contract address',
+      type: 'input',
+      name: 'address',
+      message: 'Enter contract address',
     })
-    // TODO: - address check
     contractAddress = answers.address
   }
   return new web3.eth.Contract(abi, contractAddress)
@@ -51,27 +50,27 @@ const callMethod = async (
   const abiMethod = web3Contract._jsonInterface.find(m => m.name == method)
   const questions = abiMethod.inputs.map(m => {
     const q = {
-      type : 'input',
-      name : m.name,
-      message : `Enter ${m.name} (${m.type}): `,
+      type: 'input',
+      name: m.name,
+      message: `Enter ${m.name} (${m.type}): `,
     }
     // If uint, ask if it needs unit conversion
     if (m.type.slice(0, 4) === 'uint') {
       q.extraQuestions = [
         {
-          type : 'confirm',
-          name : 'confirm',
-          message : `Do you need to convert unit? `,
+          type: 'confirm',
+          name: 'confirm',
+          message: `Do you need to convert unit? `,
         },
         {
-          type : 'input',
-          name : 'decimals',
-          message : `Enter conversion unit (e.g. gwei, finney): `,
+          type: 'input',
+          name: 'decimals',
+          message: `Enter conversion unit (e.g. gwei, finney): `,
         },
         {
-          type : 'list',
-          name : 'conversion',
-          message : `Conversaion type: `,
+          type: 'list',
+          name: 'conversion',
+          message: `Conversaion type: `,
           choices: ['fromWei', 'toWei'],
         }
       ]
@@ -94,7 +93,6 @@ const callMethod = async (
   }
 
   const methodType = abiMethod.stateMutability === 'view' ? 'call' : 'send'
-  // TODO: - Check it's only view that doesn't require send
 
   if (methodType === 'send') {
     const validateMessage = `
@@ -120,11 +118,11 @@ const callMethod = async (
 
 const validateTransaction = async (message) => {
   const answers = await prompt([{
-    type : 'confirm',
-    name : 'Confirm',
-    message : message,
+    type: 'confirm',
+    name: 'confirm',
+    message: message,
   }])
-  if (!answers.Confirm) {
+  if (!answers.confirm) {
     throw new Error('Transaction cancelled')
   }
 }

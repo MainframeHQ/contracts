@@ -1,7 +1,7 @@
 const csv = require('csv-parser')
 const fs = require('fs')
 const { prompt } = require('inquirer')
-const { utils } = require('web3')
+const utils = require('web3-utils')
 
 const config = require('../config')
 const tokenAbi = require('../abi/MainframeDistribution.json')
@@ -63,10 +63,10 @@ const validateDistribution = async (data, fromAccount, ethNetwork) => {
   `)
   const answers = await prompt([{
     type : 'confirm',
-    name : 'Confirm',
+    name : 'confirm',
     message : 'Confirm data is correct and proceed with distribution: ',
   }])
-  if (!answers.Confirm) {
+  if (!answers.confirm) {
     log.warn('Distribution terminated')
     process.exit()
   }
