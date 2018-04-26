@@ -4,9 +4,7 @@ const { utils } = require('web3')
 const config = require('./config')
 const customHandlers = require('./customHandlers')
 const { log } = require('./cli-utils')
-
-const GAS_LIMIT = 300000
-const GAS_PRICE = utils.toWei('20', 'gwei')
+const { GAS_LIMIT, GAS_PRICE } = require('./constants')
 
 const callCustomHandler = (contractName, method, web3Contract, ethNetwork, account) => {
   const customHandler = customHandlers[contractName]

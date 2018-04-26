@@ -6,6 +6,7 @@ const utils = require('web3-utils')
 const config = require('../config')
 const tokenAbi = require('../abi/MainframeDistribution.json')
 const { log } = require('../cli-utils')
+const { GAS_LIMIT, GAS_PRICE } = require('../constants')
 
 const distributeTokens = async (
   web3Contract,
@@ -21,7 +22,8 @@ const distributeTokens = async (
     data.amounts,
   ).send({
     from: account,
-    gas: 300000,
+    gas: GAS_LIMIT,
+    gasPrice: GAS_PRICE,
   })
   log.success('Transaction complete!')
   console.log(transaction)
@@ -38,7 +40,7 @@ const parseCSV = async () => {
     const recipients = []
     const amounts = []
     fs.createReadStream(filePath)
-      .pipe(csv())
+      .pipe(csv({headers: ['address', 'tokens']}))
       .on('data', (data) => {
         recipients.push(data.address)
         amounts.push(utils.toWei(data.tokens, config.tokenDecimals))
@@ -52,7 +54,8 @@ const parseCSV = async () => {
 
 const validateDistribution = async (data, fromAccount, ethNetwork) => {
   const dataForDisplay = data.recipients.reduce((string, r, i) => {
-    return string += `${r} : ${utils.fromWei(data.amounts[i], config.tokenDecimals)}\n`
+    const amount = data.amounts[i]
+    return string += `${r} : ${utils.fromWei(amount, config.tokenDecimals)}\n`
   }, '')
   log.info(`
     Distribute Tokens
