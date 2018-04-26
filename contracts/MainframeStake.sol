@@ -25,16 +25,27 @@ contract MainframeStake is Ownable, StakeInterface {
     requiredStake = 1 ether; // ether = 10^18
   }
 
-  function stake(address whitelistAddress) external returns (bool success) {
+  /**
+  * @dev Staking MFT for a node address
+  * @param staker representing the address of the person staking (not msg.sender in case of calling from other contract)
+  * @param whitelistAddress representing the address of the node you want to stake for
+  */
+
+  function stake(address staker, address whitelistAddress) external returns (bool success) {
     require(whitelist[whitelistAddress].stakerAddress == 0x0);
 
-    whitelist[whitelistAddress].stakerAddress = msg.sender;
+    whitelist[whitelistAddress].stakerAddress = staker;
     whitelist[whitelistAddress].stakedAmount = requiredStake;
 
-    deposit(msg.sender, requiredStake);
-    emit Staked(msg.sender);
+    deposit(staker, requiredStake);
+    emit Staked(staker);
     return true;
   }
+
+  /**
+  * @dev Unstake a staked node address, will remove from whitelist and refund stake
+  * @param whitelistAddress representing the staked node address
+  */
 
   function unstake(address whitelistAddress) external {
     require(whitelist[whitelistAddress].stakerAddress == msg.sender);
@@ -46,20 +57,32 @@ contract MainframeStake is Ownable, StakeInterface {
     emit Unstaked(msg.sender);
   }
 
-  function deposit(address _address, uint256 depositAmount) private returns (bool success) {
-    token.transferFrom(_address, this, depositAmount);
-    balances[_address] = balances[_address].add(depositAmount);
+  /**
+  * @dev Deposit stake amount
+  * @param fromAddress representing the address to deposit from
+  * @param depositAmount representing amount being deposited
+  */
+
+  function deposit(address fromAddress, uint256 depositAmount) private returns (bool success) {
+    token.transferFrom(fromAddress, this, depositAmount);
+    balances[fromAddress] = balances[fromAddress].add(depositAmount);
     totalDepositBalance = totalDepositBalance.add(depositAmount);
-    emit Deposit(_address, depositAmount, balances[_address]);
+    emit Deposit(fromAddress, depositAmount, balances[fromAddress]);
     return true;
   }
 
-  function withdraw(address _address, uint256 withdrawAmount) private returns (bool success) {
-    require(balances[_address] >= withdrawAmount);
-    token.transfer(_address, withdrawAmount);
-    balances[_address] = balances[_address].sub(withdrawAmount);
+  /**
+  * @dev Withdraw funds after unstaking
+  * @param toAddress representing the stakers address to withdraw to
+  * @param withdrawAmount representing stake amount being withdrawn
+  */
+
+  function withdraw(address toAddress, uint256 withdrawAmount) private returns (bool success) {
+    require(balances[toAddress] >= withdrawAmount);
+    token.transfer(toAddress, withdrawAmount);
+    balances[toAddress] = balances[toAddress].sub(withdrawAmount);
     totalDepositBalance = totalDepositBalance.sub(withdrawAmount);
-    emit Withdrawal(_address, withdrawAmount, balances[_address]);
+    emit Withdrawal(toAddress, withdrawAmount, balances[toAddress]);
     return true;
   }
 
