@@ -169,6 +169,20 @@ contract('MainframeStake', (accounts) => {
     assert(returnBalanceFail)
   })
 
+  it('should fail to refund balances if list size exceeds limit', async () => {
+    const requiredStake = await stakeContract.requiredStake()
+    await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0]})
+    await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0]})
+    await tokenContract.transfer(accounts[1], requiredStake, {from: accounts[0]})
+    await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[1]})
+    await stakeContract.stake(accounts[1], accounts[1], {from: accounts[1]})
+    await stakeContract.setArrayLimit(1, {from: accounts[0]})
+    const returnBalanceFail = await utils.expectAsyncThrow(async () => {
+      await stakeContract.refundBalances([accounts[0], accounts[1]], {from: accounts[0]})
+    })
+    assert(returnBalanceFail)
+  })
+
   it('should refund balances if called by owner', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.transfer(accounts[1], requiredStake, {from: accounts[0], value: 0})

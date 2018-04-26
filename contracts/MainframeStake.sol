@@ -7,11 +7,12 @@ import "./StakeInterface.sol";
 
 contract MainframeStake is Ownable, StakeInterface {
   using SafeMath for uint256;
-  uint256 public totalDepositBalance;
-  mapping (address => uint256) public balances;
-  ERC20 token;
 
+  ERC20 token;
+  uint256 public arrayLimit = 200;
+  uint256 public totalDepositBalance;
   uint256 public requiredStake;
+  mapping (address => uint256) public balances;
 
   struct Staker {
     uint256 stakedAmount;
@@ -102,12 +103,16 @@ contract MainframeStake is Ownable, StakeInterface {
     return requiredStake;
   }
 
-  function setRequiredStake(uint256 value) external {
-    require(msg.sender == owner);
+  function setRequiredStake(uint256 value) external onlyOwner {
     requiredStake = value;
   }
 
+  function setArrayLimit(uint256 newLimit) external onlyOwner {
+    arrayLimit = newLimit;
+  }
+
   function refundBalances(address[] addresses) public onlyOwner {
+    require(addresses.length <= arrayLimit);
     for (uint256 i = 0; i < addresses.length; i++) {
       address _address = addresses[i];
       require(balances[_address] > 0);
