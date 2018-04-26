@@ -23,7 +23,7 @@ module.exports = {
     },
     ropsten: {
       network_id: 3,
-      gas: 4600000,
+      gas: 2600000,
       provider: new LedgerWalletProvider(
         ledgerOptionsTestnet,
         "https://ropsten.infura.io/" + infura_apikey
