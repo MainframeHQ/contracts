@@ -1,5 +1,5 @@
-const MainframeToken = artifacts.require('./MainframeToken.sol')
-const MessageTest = artifacts.require('./MessageTest.sol')
+const MainframeToken = artifacts.require('MainframeToken.sol')
+const TestHelper = artifacts.require('TestHelper.sol')
 const BigNumber = require('bignumber.js')
 const utils = require('./utils.js')
 const ethjsABI = require('ethjs-abi')
@@ -174,7 +174,7 @@ contract('MainframeToken', (accounts) => {
 
   it('should not allow transfer (with data) by non owner if tradeable is false ', async () => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData('transferred')
     const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -189,7 +189,7 @@ contract('MainframeToken', (accounts) => {
   })
 
   it('should allow transfer (with data) by owner when tradeable is false ', async () => {
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData('transfer from account 0 to messageTest contract')
     const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -204,7 +204,7 @@ contract('MainframeToken', (accounts) => {
   it('should allow transfer (with data) by anyone when tradeable is true ', async () => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     await token.turnOnTradeable({ from: accounts[0] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData('transfer from account 1 to messageTest contract')
     const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -218,7 +218,7 @@ contract('MainframeToken', (accounts) => {
 
   it('should not allow approve (with data) by non owner when tradeable is false ', async () => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData('approved')
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [accounts[2], txAmount, extraData]
@@ -233,7 +233,7 @@ contract('MainframeToken', (accounts) => {
   })
 
   it('should approve (with data) correct allowance by owner when tradeable is false ', async () => {
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData(`account 0 approved ${txAmount} for messageTest contract`)
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -248,7 +248,7 @@ contract('MainframeToken', (accounts) => {
   it('should approve (with data) correct allowance by anyone when tradeable is true ', async () => {
     await token.turnOnTradeable({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData(`account 1 approved ${txAmount} for messageTest contract`)
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -260,9 +260,23 @@ contract('MainframeToken', (accounts) => {
     assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when tradeable false')
   })
 
+  it('should approve (with data) and call transferFrom in single transaction', async () => {
+    await token.turnOnTradeable({ from: accounts[0] })
+    const depositTest = await TestHelper.new();
+    const extraData = depositTest.contract.deposit.getData(accounts[0], token.address, txAmount)
+    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
+    const args = [depositTest.address, txAmount, extraData]
+    const transferData = ethjsABI.encodeMethod(abiMethod, args)
+    await token.sendTransaction({from: accounts[0], data: transferData})
+    await utils.assertEvent(token, { event: 'Approval' })
+    await utils.assertEvent(depositTest, { event: 'Deposited' })
+    const balance = await token.balanceOf(depositTest.address)
+    assert.equal(balance.toNumber(), txAmount, 'incorrect balance after approve and stake')
+  })
+
   it('should not allow transferFrom (with data) by non owner when tradeable is false ', async () => {
     await token.approve(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData('transferFrom failed')
     const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
     const args = [accounts[0], accounts[1], txAmount, extraData]
@@ -278,7 +292,7 @@ contract('MainframeToken', (accounts) => {
 
   it('should allow transferFrom (with data) by owner when tradeable is false ', async () => {
     await token.approve(accounts[0], txAmount, { from: accounts[0] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 0 to account 1`)
     const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
     const args = [accounts[0], accounts[1], txAmount, extraData]
@@ -292,7 +306,7 @@ contract('MainframeToken', (accounts) => {
     await token.turnOnTradeable({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     await token.approve(accounts[2], txAmount, { from: accounts[1] })
-    const messageTest = await MessageTest.new();
+    const messageTest = await TestHelper.new();
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 1 to account 2`)
     const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
     const args = [accounts[1], accounts[2], txAmount, extraData]

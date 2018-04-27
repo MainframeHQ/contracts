@@ -1,5 +1,25 @@
 # Mainframe Contracts
 
+### Mainframe Token
+
+[ERC827](https://github.com/ethereum/EIPs/issues/827) based token contract.
+
+ERC827 is an extension of ERC20 that allows the execution of calls inside transfer and approvals whilst being fully compatible with original ERC20 standard.
+
+### Mainframe Staking
+
+The staking contract enables users to stake MFT allowing them to participate in the Mainframe network. When staking, the user provides the ethereum wallet address associated with the node they want to stake for.
+
+It exposes a public `hasStake` function, that takes an eth address as an argument to check stake state.
+
+Users can withdraw their stake at any time by calling the `unstake` function and passing the address they staked for.
+
+### Mainframe Distribution
+
+The distribution contract enables batch transfer of MFT by the contract owner with a limit of 200 per transaction.
+
+# Development
+
 ## Setup Truffle
 
 ### Prerequisites
