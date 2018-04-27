@@ -199,9 +199,16 @@ const initialize = async () => {
     await requestWalletAccessType()
     await requestContractMethod(web3, ethNetwork)
   } catch (err) {
-    log.warn('Error: ' + err.message)
-    log.info(err.stack)
-    process.exit()
+    if (
+      err.message &&
+      err.message.includes('Failed to subscribe to new newBlockHeaders')
+    ) {
+      log.info('Please visit etherscan to check transaction status for transactions signed by a ledger')
+    } else {
+      log.warn('Error: ' + err.message)
+      log.info(err.stack)
+      process.exit()
+    }
   }
 }
 
