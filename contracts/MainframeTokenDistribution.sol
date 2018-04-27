@@ -29,7 +29,7 @@ contract MainframeTokenDistribution is Ownable {
     for(uint i = 0; i < recipients.length; i++) {
       if(values[i] > 0) {
         require(mainframeToken.transferFrom(tokenOwner, recipients[i], values[i]));
-        TokensDistributed(recipients[i], values[i]);
+        emit TokensDistributed(recipients[i], values[i]);
         totalDistributed += values[i];
       }
     }
