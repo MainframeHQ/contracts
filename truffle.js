@@ -1,5 +1,4 @@
 // See <http://truffleframework.com/docs/advanced/configuration>
-const { clone } = require('lodash')
 const LedgerWalletProvider = require("truffle-ledger-provider")
 const infura_apikey = process.env.INFURA_KEY
 
@@ -9,10 +8,10 @@ const ledgerOptions = {
   accountsOffset: 0, // change to select different ledger account
 }
 
-const ledgerOptionsMainnet = clone(ledgerOptions)
-const ledgerOptionsTestnet = clone(ledgerOptions)
-ledgerOptionsTestnet.networkId = 3
-ledgerOptionsMainnet.networkId = 1
+const ledgerOptionsMainnet = Object.assign({}, ledgerOptions, { networkId: 1 })
+const ledgerOptionsTestnet = Object.assign({}, ledgerOptions, { networkId: 3 })
+const gasPrice = 10000000000
+const gasLimit = 4600000
 
 module.exports = {
   networks: {
@@ -23,7 +22,8 @@ module.exports = {
     },
     ropsten: {
       network_id: 3,
-      gas: 4600000,
+      gas: gasLimit,
+      gasPrice: gasPrice,
       provider: new LedgerWalletProvider(
         ledgerOptionsTestnet,
         "https://ropsten.infura.io/" + infura_apikey
@@ -31,7 +31,8 @@ module.exports = {
     },
     mainnet: {
       network_id: 1,
-      gas: 4600000,
+      gas: gasLimit,
+      gasPrice: gasPrice,
       provider: new LedgerWalletProvider(
         ledgerOptionsMainnet,
         "https://mainnet.infura.io/" + infura_apikey
