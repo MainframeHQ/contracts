@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const Web3 = require('web3')
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 const Accounts = require('web3-eth-accounts')
 const HDWalletProvider = require('truffle-hdwallet-provider')
@@ -17,9 +17,9 @@ const { log, capitalize } = require('./cli-utils')
 
 const LEDGER_ROOT_PATH = `44'/60'/0'/0`
 
-var web3
-var ethNetwork = 'testnet' // testnet or mainnet
-var account
+let web3
+let ethNetwork = 'testnet' // testnet or mainnet
+let account
 
 const determineNetwork = async () => {
   const answers = await prompt([{
@@ -72,7 +72,7 @@ const decodeKeystore = async() => {
       message: 'Enter password to decrypt file: ',
     }
   ])
-  const file = JSON.parse(fs.readFileSync(answers.keystorePath))
+  const file = await fs.readJson(answers.keystorePath)
   const accounts = new Accounts()
   const decrypted = accounts.decrypt(file, answers.password)
   return decrypted.privateKey
@@ -85,7 +85,7 @@ const requestWalletAccessType = async () => {
     message: 'Wallet source:',
     choices: ['Private Key', 'Mnemonic', 'Ledger', 'Keystore File'],
   }])
-  var provider
+  let provider
   switch (answers.wallet) {
     case 'Private Key':
       const key = await requestPrivateKey()
@@ -93,7 +93,7 @@ const requestWalletAccessType = async () => {
       web3 = new Web3(provider)
       break
     case 'Keystore File':
-      var decodedKey = await decodeKeystore()
+      let decodedKey = await decodeKeystore()
       if (decodedKey.slice(0, 2) === '0x') {
         decodedKey = decodedKey.slice(2, decodedKey.length)
       }
@@ -106,7 +106,7 @@ const requestWalletAccessType = async () => {
       web3 = new Web3(provider)
       break
     case 'Ledger':
-      var engine = new ProviderEngine()
+      let engine = new ProviderEngine()
       web3 = new Web3(engine)
       try {
         const ledgerWalletSubProvider = await LedgerWalletSubproviderFactory()
@@ -121,7 +121,7 @@ const requestWalletAccessType = async () => {
 
         // Set selected account as provider
         const networkId = ethNetwork === 'testnet' ? 3 : 1
-        var ledgerWalletSelectedProvider = await LedgerWalletSubproviderFactory(() => networkId, selectedPath)
+        const ledgerWalletSelectedProvider = await LedgerWalletSubproviderFactory(() => networkId, selectedPath)
         engine.addProvider(ledgerWalletSelectedProvider)
         engine.addProvider(new RpcSubprovider({rpcUrl: config.rpcUrl[ethNetwork]}))
         engine.start()
@@ -182,7 +182,7 @@ const availableContracts = async () => {
 
 const getWeb3Contract = async (name, web3, ethNetwork) => {
   const filePath = path.resolve(__dirname, 'abi', `${name}.json`)
-  const abi = JSON.parse(fs.readFileSync(filePath))
+  const abi = await fs.readJson(filePath)
   return await contract.getWeb3Contract(name, abi, web3, ethNetwork)
 }
 

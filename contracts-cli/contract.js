@@ -15,7 +15,7 @@ const callCustomHandler = (contractName, method, web3Contract, ethNetwork, accou
 }
 
 const getWeb3Contract = async (name, abi, web3, ethNetwork) => {
-  var contractAddress
+  let contractAddress
   if (config.contractAddresses && config.contractAddresses[name]) {
     contractAddress = config.contractAddresses[name][ethNetwork]
   } else {
@@ -79,7 +79,7 @@ const callMethod = async (
   const args = []
   for (i = 0; i < questions.length; i++) {
     const q = questions[i]
-    var arg = answers[q.name]
+    let arg = answers[q.name]
     if (q.extraQuestions) {
       const extraAnswers = await prompt(q.extraQuestions.slice(0, 1))
       if (extraAnswers.confirm) {
@@ -105,7 +105,7 @@ const callMethod = async (
     await validateTransaction(validateMessage)
     log.info('Pending transaction...', 'blue')
   }
-  const transaction = await web3Contract.methods[method].apply(null, args)[methodType]({
+  const transaction = await web3Contract.methods[method](...args)[methodType]({
     from: account,
     gas: GAS_LIMIT,
     gasPrice: GAS_PRICE,
