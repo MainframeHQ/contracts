@@ -45,11 +45,20 @@ contract('MainframeToken', (accounts) => {
     assert.equal(expected.toString(), ownersBalance.toString(), 'incorrect assignment of initial token supply')
   })
 
-  it('should allow transfer of ownership by owner', async () => {
+  it('should allow transfer of ownership by owner to pending owner', async () => {
     await token.transferOwnership(accounts[1], { from: accounts[0] })
+    await token.claimOwnership({ from: accounts[1] })
     const owner = await token.owner.call()
     assert.equal(accounts[1], owner, 'failed transfer of ownership')
     await token.transferOwnership(accounts[0], { from: accounts[1] })
+  })
+
+  it('should not allow ownership to be claimed by non pending owner', async () => {
+    await token.transferOwnership(accounts[1], { from: accounts[0] })
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await token.claimOwnership({ from: accounts[2] })
+    })
+    assert(didFail, 'ownership claimed by non pending owner')
   })
 
   it('should not allow transfer of ownership by non owner', async () => {

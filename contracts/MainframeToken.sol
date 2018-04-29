@@ -2,8 +2,9 @@ pragma solidity ^0.4.21;
 
 import "zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
 import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "zeppelin-solidity/contracts/ownership/Claimable.sol";
 
-contract MainframeToken is ERC827Token, Pausable {
+contract MainframeToken is ERC827Token, Pausable, Claimable {
   string public constant name = "Mainframe Token";
   string public constant symbol = "MFT";
   uint8  public constant decimals = 18;
