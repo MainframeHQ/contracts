@@ -10,7 +10,6 @@ contract('MainframeStake', (accounts) => {
   beforeEach('setup contracts for each test', async() => {
     tokenContract = await MainframeToken.new()
     stakeContract = await MainframeStake.new(tokenContract.address)
-    await tokenContract.turnOnTradeable({ from: accounts[0] })
   })
 
   it('should assign creator as owner', async () => {
@@ -226,7 +225,6 @@ contract('MainframeStake', (accounts) => {
   })
 
   it('should fail to destroy itself if someone sends tokens to the contract address', async () => {
-    await tokenContract.turnOnTradeable({from: accounts[0]})
     await tokenContract.transfer(stakeContract.address, 200, {from: accounts[0]})
     const didFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.destroy()
@@ -238,7 +236,6 @@ contract('MainframeStake', (accounts) => {
     let totalBalance
     let totalDepositBalance
     const requiredStake = await stakeContract.requiredStake()
-    await tokenContract.turnOnTradeable({from: accounts[0]})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0], value: 0})
     await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0], value: 0})
     await utils.assertEvent(stakeContract, {event: 'Deposit'})

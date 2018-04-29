@@ -25,7 +25,6 @@ contract('MainframeTokenDistribution', (accounts) => {
       accounts[2],
     ]
     const total = amounts.reduce((a, b) => a + b, 0)
-    await tokenContract.turnOnTradeable({ from: accounts[0] })
     await tokenContract.approve(distributionContract.address, total, { from: accounts[0], value: 0, gas: 3000000 })
     const didFail = await utils.expectAsyncThrow(async () => {
       await distributionContract.distributeTokens(accounts[0], invalidRecipientList, amounts, { from: accounts[0], value: 0, gas: 3000000 })
@@ -35,7 +34,6 @@ contract('MainframeTokenDistribution', (accounts) => {
 
   it('should fail to distribute if allowance too low', async () => {
     const total = amounts.reduce((a, b) => a + b, 0)
-    await tokenContract.turnOnTradeable({ from: accounts[0] })
     await tokenContract.approve(distributionContract.address, total - 100, { from: accounts[0], value: 0, gas: 3000000 })
     const didFail = await utils.expectAsyncThrow(async () => {
       await distributionContract.distributeTokens(accounts[0], recipients, amounts, { from: accounts[0], value: 0, gas: 3000000 })
@@ -46,7 +44,6 @@ contract('MainframeTokenDistribution', (accounts) => {
   it('should fail to distribute if owners balance too low', async () => {
     const total = amounts.reduce((a, b) => a + b, 0)
     const ownerBalance = await tokenContract.balanceOf(accounts[0])
-    await tokenContract.turnOnTradeable({ from: accounts[0] })
     await tokenContract.approve(distributionContract.address, total, { from: accounts[0], value: 0, gas: 3000000 })
     await tokenContract.transfer(accounts[4], ownerBalance - 500, { from: accounts[0] })
     const didFail = await utils.expectAsyncThrow(async () => {
@@ -55,9 +52,10 @@ contract('MainframeTokenDistribution', (accounts) => {
     assert(didFail)
   })
 
-  it('should distribute correct token amounts to recipients', async () => {
+  it('should distribute correct token amounts to recipients when token paused', async () => {
     const total = amounts.reduce((a, b) => a + b, 0)
-    await tokenContract.turnOnTradeable({ from: accounts[0] })
+    await tokenContract.setDistributor(distributionContract.address)
+    await tokenContract.pause({ from: accounts[0] })
     await tokenContract.approve(distributionContract.address, total, { from: accounts[0], value: 0, gas: 3000000 })
     await distributionContract.distributeTokens(accounts[0], recipients, amounts, { from: accounts[0], value: 0, gas: 3000000 })
     const balance1 = await tokenContract.balanceOf(accounts[1])
@@ -70,7 +68,6 @@ contract('MainframeTokenDistribution', (accounts) => {
   })
 
   it('should successfully drain mistakenly sent tokens', async () => {
-    await tokenContract.turnOnTradeable({ from: accounts[0] })
     await tokenContract.transfer(distributionContract.address, 100, { from: accounts[0] })
     const totalBalanceBefore = await tokenContract.balanceOf(distributionContract.address)
     assert.equal(totalBalanceBefore, 100)

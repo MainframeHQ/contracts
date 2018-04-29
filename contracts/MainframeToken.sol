@@ -1,13 +1,13 @@
 pragma solidity ^0.4.21;
 
 import "zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
 
-contract MainframeToken is ERC827Token, Ownable {
+contract MainframeToken is ERC827Token, Pausable {
   string public constant name = "Mainframe Token";
   string public constant symbol = "MFT";
   uint8  public constant decimals = 18;
-  bool public tradable = false;
+  address public distributor;
 
   modifier validDestination(address to) {
     require(to != address(0x0));
@@ -16,12 +16,15 @@ contract MainframeToken is ERC827Token, Ownable {
   }
 
   modifier isTradeable() {
-    require(tradable == true || msg.sender == owner);
+    require(
+      !paused ||
+      msg.sender == owner ||
+      msg.sender == distributor
+    );
     _;
   }
 
   function MainframeToken() public {
-    // assign the total tokens to mainframe
     totalSupply_ = 10000000000 ether; // 10 billion, 18 decimals (ether = 10^18)
     balances[msg.sender] = totalSupply_;
     emit Transfer(address(0x0), msg.sender, totalSupply_);
@@ -55,9 +58,13 @@ contract MainframeToken is ERC827Token, Ownable {
     return super.approve(spender, value, data);
   }
 
-  function turnOnTradeable() public onlyOwner {
-    tradable = true;
+  // Setters
+
+  function setDistributor(address newDistributor) public onlyOwner {
+    distributor = newDistributor;
   }
+
+  // Token Drain
 
   function emergencyERC20Drain(ERC20 token, uint256 amount) public onlyOwner {
     // owner can drain tokens that are sent here by mistake

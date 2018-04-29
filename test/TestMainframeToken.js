@@ -59,21 +59,39 @@ contract('MainframeToken', (accounts) => {
     assert(didFail, 'tranferred ownership by non owner')
   })
 
-  it('should not allow transfer by non owner if tradeable is false ', async () => {
+  it('should not allow transfer by non owner when paused', async () => {
+    await token.pause({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const failed = await utils.expectAsyncThrow(async () => {
       await token.transfer(accounts[2], txAmount, { from: accounts[1] })
     })
-    assert(failed, 'allowed transfer by non owner when not tradeable')
+    assert(failed, 'allowed transfer by non owner when paused')
   })
 
-  it('should allow transfer of tokens by owner when tradeable is false', async () => {
+  it('should allow transfer of tokens by owner when paused', async () => {
+    await token.pause({ from: accounts[0] })
     const starting0Balance = await token.balanceOf(accounts[0])
     const starting1Balance = await token.balanceOf(accounts[1])
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     await utils.assertEvent(token, { event: 'Transfer' })
     const ending0Balance = await token.balanceOf(accounts[0])
     const ending1Balance = await token.balanceOf(accounts[1])
+    const expected0Bal = starting0Balance.minus(txAmount)
+    const expected1Bal = starting1Balance.plus(txAmount)
+    assert.equal(ending0Balance.toString(), expected0Bal.toString(), 'Balance of account 0 incorrect')
+    assert.equal(ending1Balance.toString(), expected1Bal.toString(), 'Balance of account 1 incorrect')
+  })
+
+  it('should allow transfer of tokens by distributor when paused', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    await token.setDistributor(accounts[1], { from: accounts[0] })
+    await token.pause({ from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[1])
+    const starting1Balance = await token.balanceOf(accounts[2])
+    await token.transfer(accounts[2], txAmount, { from: accounts[1] })
+    await utils.assertEvent(token, { event: 'Transfer' })
+    const ending0Balance = await token.balanceOf(accounts[1])
+    const ending1Balance = await token.balanceOf(accounts[2])
     const expected0Bal = starting0Balance.minus(txAmount)
     const expected1Bal = starting1Balance.plus(txAmount)
     assert.equal(ending0Balance.toString(), expected0Bal.toString(), 'Balance of account 0 incorrect')
@@ -98,10 +116,9 @@ contract('MainframeToken', (accounts) => {
     assert(didFail, 'transfer succeeded when to address is token contract address')
   })
 
-  it('should allow transfer of tokens by anyone when tradeable set to true', async () => {
+  it('should allow transfer of tokens by anyone when not paused', async () => {
     const starting0Balance = await token.balanceOf(accounts[0])
     const starting2Balance = await token.balanceOf(accounts[2])
-    await token.turnOnTradeable({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     await utils.assertEvent(token, { event: 'Transfer' })
     await token.transfer(accounts[2], txAmount, { from: accounts[1] })
@@ -114,12 +131,13 @@ contract('MainframeToken', (accounts) => {
     assert.equal(ending2Balance.toString(), expected2Bal.toString(), 'Balance of account 1 incorrect')
   })
 
-  it('should not allow approve by non owner if tradeable is false ', async () => {
+  it('should not allow approve by non owner when paused ', async () => {
+    await token.pause({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const failed = await utils.expectAsyncThrow(async () => {
       await token.approve(accounts[2], 500, { from: accounts[1] })
     })
-    assert(failed, 'approve succeeded by non owner when tradeable false')
+    assert(failed, 'approve succeeded by non owner when paused')
   })
 
   it('should not allow transferFrom when to address is invalid', async () => {
@@ -143,24 +161,40 @@ contract('MainframeToken', (accounts) => {
     assert(didFail)
   })
 
-  it('should allow transferFrom by owner when tradeable false', async () => {
+  it('should allow transferFrom by owner when paused', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const starting0Balance = await token.balanceOf(accounts[0])
     const starting1Balance = await token.balanceOf(accounts[1])
-    await token.turnOnTradeable({ from: accounts[0] })
-    await token.approve(accounts[1], txAmount, { from: accounts[0] })
+    await token.approve(accounts[0], txAmount, { from: accounts[1] })
     await utils.assertEvent(token, { event: 'Approval' })
-    await token.transferFrom(accounts[0], accounts[1], txAmount, { from: accounts[1] })
+    await token.pause({ from: accounts[0] })
+    await token.transferFrom(accounts[1], accounts[0], txAmount, { from: accounts[0] })
     const ending0Balance = await token.balanceOf(accounts[0])
     const ending1Balance = await token.balanceOf(accounts[1])
+    assert.equal(ending0Balance.toNumber(), starting0Balance.toNumber() + txAmount, 'Balance of account 0 incorrect')
+    assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() - txAmount, 'Balance of account 1 incorrect')
+  })
+
+  it('should allow transferFrom by distributor when paused', async () => {
+    const distributorAccount = accounts[1]
+    await token.setDistributor(distributorAccount, { from: accounts[0] })
+    await token.transfer(distributorAccount, txAmount, { from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[0])
+    const starting1Balance = await token.balanceOf(distributorAccount)
+    await token.approve(distributorAccount, txAmount, { from: accounts[0] })
+    await utils.assertEvent(token, { event: 'Approval' })
+    await token.pause({ from: accounts[0] })
+    await token.transferFrom(accounts[0], distributorAccount, txAmount, { from: distributorAccount })
+    const ending0Balance = await token.balanceOf(accounts[0])
+    const ending1Balance = await token.balanceOf(distributorAccount)
     assert.equal(ending0Balance.toNumber(), starting0Balance.toNumber() - txAmount, 'Balance of account 0 incorrect')
     assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() + txAmount, 'Balance of account 1 incorrect')
   })
 
-  it('should allow transferFrom by anyone when address has approved balance and tradeable turned on', async () => {
+  it('should allow transferFrom by anyone when address has approved balance and not paused', async () => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const starting0Balance = await token.balanceOf(accounts[1])
     const starting1Balance = await token.balanceOf(accounts[2])
-    await token.turnOnTradeable({ from: accounts[0] })
     await token.approve(accounts[2], txAmount, { from: accounts[1] })
     await utils.assertEvent(token, { event: 'Approval' })
     await token.transferFrom(accounts[1], accounts[2], txAmount, { from: accounts[2] })
@@ -172,9 +206,10 @@ contract('MainframeToken', (accounts) => {
 
   // ERC827 Tests
 
-  it('should not allow transfer (with data) by non owner if tradeable is false ', async () => {
+  it('should not allow transfer (with data) by non owner when paused ', async () => {
+    await token.pause({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await TestHelper.new();
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transferred')
     const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -185,11 +220,12 @@ contract('MainframeToken', (accounts) => {
         data: transferData,
       })
     })
-    assert(failed, 'allowed transfer (with data) by non owner when not tradeable')
+    assert(failed, 'allowed transfer (with data) by non owner when paused')
   })
 
-  it('should allow transfer (with data) by owner when tradeable is false ', async () => {
-    const messageTest = await TestHelper.new();
+  it('should allow transfer (with data) by owner when paused ', async () => {
+    await token.pause({ from: accounts[0] })
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transfer from account 0 to messageTest contract')
     const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -198,13 +234,29 @@ contract('MainframeToken', (accounts) => {
     await utils.assertEvent(token, { event: 'Transfer' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const account1Bal = await token.balanceOf(messageTest.address)
-    assert.equal(account1Bal.toNumber(), txAmount, 'transfer by owner failed when tradeable set to false')
+    assert.equal(account1Bal.toNumber(), txAmount, 'transfer by owner failed when paused')
   })
 
-  it('should allow transfer (with data) by anyone when tradeable is true ', async () => {
+  it('should allow transfer (with data) by distributor when paused ', async () => {
+    const distributorAccount = accounts[1]
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    await token.turnOnTradeable({ from: accounts[0] })
-    const messageTest = await TestHelper.new();
+    await token.setDistributor(distributorAccount, { from: accounts[0] })
+    await token.pause({ from: accounts[0] })
+    const messageTest = await TestHelper.new()
+    const extraData = messageTest.contract.showMessage.getData('transfer from distributor to messageTest contract')
+    const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
+    const args = [messageTest.address, txAmount, extraData]
+    const transferData = ethjsABI.encodeMethod(abiMethod, args)
+    const transaction = await token.sendTransaction({from: distributorAccount, data: transferData})
+    await utils.assertEvent(token, { event: 'Transfer' })
+    await utils.assertEvent(messageTest, { event: 'ShowMessage' })
+    const account1Bal = await token.balanceOf(messageTest.address)
+    assert.equal(account1Bal.toNumber(), txAmount, 'transfer by distributor failed when paused')
+  })
+
+  it('should allow transfer (with data) by anyone when not paused ', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transfer from account 1 to messageTest contract')
     const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -213,12 +265,13 @@ contract('MainframeToken', (accounts) => {
     await utils.assertEvent(token, { event: 'Transfer' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const account1Bal = await token.balanceOf(messageTest.address)
-    assert.equal(account1Bal.toNumber(), txAmount, 'transfer failed when tradeable set to true')
+    assert.equal(account1Bal.toNumber(), txAmount, 'transfer failed when not paused')
   })
 
-  it('should not allow approve (with data) by non owner when tradeable is false ', async () => {
+  it('should not allow approve (with data) by non owner when paused ', async () => {
+    await token.pause({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await TestHelper.new();
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('approved')
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [accounts[2], txAmount, extraData]
@@ -229,11 +282,12 @@ contract('MainframeToken', (accounts) => {
         data: transferData,
       })
     })
-    assert(failed, 'approve (with data) succeeded for non owner when tradeable set to false')
+    assert(failed, 'approve (with data) succeeded for non owner when paused')
   })
 
-  it('should approve (with data) correct allowance by owner when tradeable is false ', async () => {
-    const messageTest = await TestHelper.new();
+  it('should approve (with data) correct allowance by owner when paused ', async () => {
+    await token.pause({ from: accounts[0] })
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`account 0 approved ${txAmount} for messageTest contract`)
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -242,13 +296,29 @@ contract('MainframeToken', (accounts) => {
     await utils.assertEvent(token, { event: 'Approval' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const allowance = await token.allowance(accounts[0], messageTest.address)
-    assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when tradeable false')
+    assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when paused')
   })
 
-  it('should approve (with data) correct allowance by anyone when tradeable is true ', async () => {
-    await token.turnOnTradeable({ from: accounts[0] })
+  it('should approve (with data) correct allowance by distributor when paused ', async () => {
+    const distributorAccount = accounts[1]
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await TestHelper.new();
+    await token.setDistributor(distributorAccount, { from: accounts[0] })
+    await token.pause({ from: accounts[0] })
+    const messageTest = await TestHelper.new()
+    const extraData = messageTest.contract.showMessage.getData(`distributor approved ${txAmount} for messageTest contract`)
+    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
+    const args = [messageTest.address, txAmount, extraData]
+    const transferData = ethjsABI.encodeMethod(abiMethod, args)
+    await token.sendTransaction({from: distributorAccount, data: transferData})
+    await utils.assertEvent(token, { event: 'Approval' })
+    await utils.assertEvent(messageTest, { event: 'ShowMessage' })
+    const allowance = await token.allowance(distributorAccount, messageTest.address)
+    assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when paused')
+  })
+
+  it('should approve (with data) correct allowance by anyone when not paused ', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`account 1 approved ${txAmount} for messageTest contract`)
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [messageTest.address, txAmount, extraData]
@@ -257,12 +327,11 @@ contract('MainframeToken', (accounts) => {
     await utils.assertEvent(token, { event: 'Approval' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const allowance = await token.allowance(accounts[1], messageTest.address)
-    assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when tradeable false')
+    assert.equal(allowance.toNumber(), txAmount, 'incorrect allowance approved by owner when paused')
   })
 
   it('should approve (with data) and call transferFrom in single transaction', async () => {
-    await token.turnOnTradeable({ from: accounts[0] })
-    const depositTest = await TestHelper.new();
+    const depositTest = await TestHelper.new()
     const extraData = depositTest.contract.deposit.getData(accounts[0], token.address, txAmount)
     const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
     const args = [depositTest.address, txAmount, extraData]
@@ -274,9 +343,10 @@ contract('MainframeToken', (accounts) => {
     assert.equal(balance.toNumber(), txAmount, 'incorrect balance after approve and stake')
   })
 
-  it('should not allow transferFrom (with data) by non owner when tradeable is false ', async () => {
+  it('should not allow transferFrom (with data) by non owner when paused ', async () => {
     await token.approve(accounts[1], txAmount, { from: accounts[0] })
-    const messageTest = await TestHelper.new();
+    await token.pause({ from: accounts[0] })
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transferFrom failed')
     const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
     const args = [accounts[0], accounts[1], txAmount, extraData]
@@ -287,32 +357,47 @@ contract('MainframeToken', (accounts) => {
         data: transferData,
       })
     })
-    assert(failed, 'transferFrom (with data) succeeded for non owner when tradeable set to false')
+    assert(failed, 'transferFrom (with data) succeeded for non owner when paused')
   })
 
-  it('should allow transferFrom (with data) by owner when tradeable is false ', async () => {
+  it('should allow transferFrom (with data) by owner when paused ', async () => {
+    await token.pause({ from: accounts[0] })
     await token.approve(accounts[0], txAmount, { from: accounts[0] })
-    const messageTest = await TestHelper.new();
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 0 to account 1`)
     const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
     const args = [accounts[0], accounts[1], txAmount, extraData]
     const transferData = ethjsABI.encodeMethod(abiMethod, args)
     await token.sendTransaction({from: accounts[0], data: transferData})
     const account1Bal = await token.balanceOf(accounts[1])
-    assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed for owner when tradeable set to false')
+    assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed for owner when paused')
   })
 
-  it('should allow transferFrom (with data) by anyone when tradeable is true ', async () => {
-    await token.turnOnTradeable({ from: accounts[0] })
+  it('should allow transferFrom (with data) by distributor when paused ', async () => {
+    const distributorAccount = accounts[1]
+    await token.setDistributor(distributorAccount, { from: accounts[0] })
+    await token.pause({ from: accounts[0] })
+    await token.approve(distributorAccount, txAmount, { from: accounts[0] })
+    const messageTest = await TestHelper.new()
+    const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 0 to account 1 by distributor`)
+    const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
+    const args = [accounts[0], distributorAccount, txAmount, extraData]
+    const transferData = ethjsABI.encodeMethod(abiMethod, args)
+    await token.sendTransaction({from: distributorAccount, data: transferData})
+    const account1Bal = await token.balanceOf(distributorAccount)
+    assert.equal(account1Bal.toNumber(), txAmount, 'inorrect distributor balance')
+  })
+
+  it('should allow transferFrom (with data) by anyone when not paused ', async () => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     await token.approve(accounts[2], txAmount, { from: accounts[1] })
-    const messageTest = await TestHelper.new();
+    const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 1 to account 2`)
     const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
     const args = [accounts[1], accounts[2], txAmount, extraData]
     const transferData = ethjsABI.encodeMethod(abiMethod, args)
     await token.sendTransaction({from: accounts[2], data: transferData})
     const account1Bal = await token.balanceOf(accounts[2])
-    assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed for owner when tradeable set to false')
+    assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed when not paused')
   })
 })
