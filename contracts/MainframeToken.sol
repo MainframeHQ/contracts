@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
-import "zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract MainframeToken is ERC827Token, Ownable {
   string public constant name = "Mainframe Token";

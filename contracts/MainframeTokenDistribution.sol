@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
-import "zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 contract MainframeTokenDistribution is Ownable {
 
@@ -29,7 +29,7 @@ contract MainframeTokenDistribution is Ownable {
     for(uint i = 0; i < recipients.length; i++) {
       if(values[i] > 0) {
         require(mainframeToken.transferFrom(tokenOwner, recipients[i], values[i]));
-        TokensDistributed(recipients[i], values[i]);
+        emit TokensDistributed(recipients[i], values[i]);
         totalDistributed += values[i];
       }
     }
