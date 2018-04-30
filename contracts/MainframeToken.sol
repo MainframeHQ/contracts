@@ -1,8 +1,8 @@
 pragma solidity ^0.4.21;
 
-import "zeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
-import "zeppelin-solidity/contracts/lifecycle/Pausable.sol";
-import "zeppelin-solidity/contracts/ownership/Claimable.sol";
+import "openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+import "openzeppelin-solidity/contracts/ownership/Claimable.sol";
 
 contract MainframeToken is ERC827Token, Pausable, Claimable {
   string public constant name = "Mainframe Token";
