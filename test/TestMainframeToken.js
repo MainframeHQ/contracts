@@ -2,7 +2,6 @@ const MainframeToken = artifacts.require('MainframeToken.sol')
 const TestHelper = artifacts.require('TestHelper.sol')
 const BigNumber = require('bignumber.js')
 const utils = require('./utils.js')
-const ethjsABI = require('ethjs-abi')
 
 contract('MainframeToken', (accounts) => {
 
@@ -220,14 +219,8 @@ contract('MainframeToken', (accounts) => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transferred')
-    const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
     const failed = await utils.expectAsyncThrow(async () => {
-      await token.sendTransaction({
-        from: accounts[1],
-        data: transferData,
-      })
+      await token.transferAndCall(accounts[0], txAmount, extraData, { from: accounts[1] })
     })
     assert(failed, 'allowed transfer (with data) by non owner when paused')
   })
@@ -236,10 +229,7 @@ contract('MainframeToken', (accounts) => {
     await token.pause({ from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transfer from account 0 to messageTest contract')
-    const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    const transaction = await token.sendTransaction({from: accounts[0], data: transferData})
+    await token.transferAndCall(messageTest.address, txAmount, extraData, { from: accounts[0] })
     await utils.assertEvent(token, { event: 'Transfer' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const account1Bal = await token.balanceOf(messageTest.address)
@@ -253,10 +243,7 @@ contract('MainframeToken', (accounts) => {
     await token.pause({ from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transfer from distributor to messageTest contract')
-    const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    const transaction = await token.sendTransaction({from: distributorAccount, data: transferData})
+    await token.transferAndCall(messageTest.address, txAmount, extraData, { from: distributorAccount })
     await utils.assertEvent(token, { event: 'Transfer' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const account1Bal = await token.balanceOf(messageTest.address)
@@ -267,10 +254,7 @@ contract('MainframeToken', (accounts) => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transfer from account 1 to messageTest contract')
-    const abiMethod = utils.findMethod(token.abi, 'transfer', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: accounts[1], data: transferData})
+    await token.transferAndCall(messageTest.address, txAmount, extraData, { from: accounts[1] })
     await utils.assertEvent(token, { event: 'Transfer' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const account1Bal = await token.balanceOf(messageTest.address)
@@ -281,15 +265,9 @@ contract('MainframeToken', (accounts) => {
     await token.pause({ from: accounts[0] })
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const messageTest = await TestHelper.new()
-    const extraData = messageTest.contract.showMessage.getData('approved')
-    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
-    const args = [accounts[2], txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
+    const extraData = messageTest.contract.showMessage.getData(`account 0 approved ${txAmount} for messageTest contract`)
     const failed = await utils.expectAsyncThrow(async () => {
-      await token.sendTransaction({
-        from: accounts[1],
-        data: transferData,
-      })
+      await token.approveAndCall(accounts[2], txAmount, extraData, { from: accounts[1] })
     })
     assert(failed, 'approve (with data) succeeded for non owner when paused')
   })
@@ -298,10 +276,7 @@ contract('MainframeToken', (accounts) => {
     await token.pause({ from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`account 0 approved ${txAmount} for messageTest contract`)
-    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: accounts[0], data: transferData})
+    await token.approveAndCall(messageTest.address, txAmount, extraData, { from: accounts[0] })
     await utils.assertEvent(token, { event: 'Approval' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const allowance = await token.allowance(accounts[0], messageTest.address)
@@ -315,10 +290,7 @@ contract('MainframeToken', (accounts) => {
     await token.pause({ from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`distributor approved ${txAmount} for messageTest contract`)
-    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: distributorAccount, data: transferData})
+    await token.approveAndCall(messageTest.address, txAmount, extraData, { from: distributorAccount })
     await utils.assertEvent(token, { event: 'Approval' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const allowance = await token.allowance(distributorAccount, messageTest.address)
@@ -329,10 +301,7 @@ contract('MainframeToken', (accounts) => {
     await token.transfer(accounts[1], txAmount, { from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`account 1 approved ${txAmount} for messageTest contract`)
-    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
-    const args = [messageTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: accounts[1], data: transferData})
+    await token.approveAndCall(messageTest.address, txAmount, extraData, { from: accounts[1] })
     await utils.assertEvent(token, { event: 'Approval' })
     await utils.assertEvent(messageTest, { event: 'ShowMessage' })
     const allowance = await token.allowance(accounts[1], messageTest.address)
@@ -342,10 +311,7 @@ contract('MainframeToken', (accounts) => {
   it('should approve (with data) and call transferFrom in single transaction', async () => {
     const depositTest = await TestHelper.new()
     const extraData = depositTest.contract.deposit.getData(accounts[0], token.address, txAmount)
-    const abiMethod = utils.findMethod(token.abi, 'approve', 'address,uint256,bytes')
-    const args = [depositTest.address, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: accounts[0], data: transferData})
+    await token.approveAndCall(depositTest.address, txAmount, extraData, { from: accounts[0] })
     await utils.assertEvent(token, { event: 'Approval' })
     await utils.assertEvent(depositTest, { event: 'Deposited' })
     const balance = await token.balanceOf(depositTest.address)
@@ -357,28 +323,20 @@ contract('MainframeToken', (accounts) => {
     await token.pause({ from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData('transferFrom failed')
-    const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
-    const args = [accounts[0], accounts[1], txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
     const failed = await utils.expectAsyncThrow(async () => {
-      await token.sendTransaction({
-        from: accounts[1],
-        data: transferData,
-      })
+      await token.transferFromAndCall(accounts[0], accounts[1], txAmount, extraData, { from: accounts[0] })
     })
     assert(failed, 'transferFrom (with data) succeeded for non owner when paused')
   })
 
   it('should allow transferFrom (with data) by owner when paused ', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    await token.approve(accounts[0], txAmount, { from: accounts[1] })
     await token.pause({ from: accounts[0] })
-    await token.approve(accounts[0], txAmount, { from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 0 to account 1`)
-    const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
-    const args = [accounts[0], accounts[1], txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: accounts[0], data: transferData})
-    const account1Bal = await token.balanceOf(accounts[1])
+    await token.transferFromAndCall(accounts[1], accounts[2], txAmount, extraData, { from: accounts[0] })
+    const account1Bal = await token.balanceOf(accounts[2])
     assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed for owner when paused')
   })
 
@@ -389,11 +347,8 @@ contract('MainframeToken', (accounts) => {
     await token.approve(distributorAccount, txAmount, { from: accounts[0] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 0 to account 1 by distributor`)
-    const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
-    const args = [accounts[0], distributorAccount, txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: distributorAccount, data: transferData})
-    const account1Bal = await token.balanceOf(distributorAccount)
+    await token.transferFromAndCall(accounts[0], accounts[2], txAmount, extraData, { from: distributorAccount })
+    const account1Bal = await token.balanceOf(accounts[2])
     assert.equal(account1Bal.toNumber(), txAmount, 'inorrect distributor balance')
   })
 
@@ -402,10 +357,7 @@ contract('MainframeToken', (accounts) => {
     await token.approve(accounts[2], txAmount, { from: accounts[1] })
     const messageTest = await TestHelper.new()
     const extraData = messageTest.contract.showMessage.getData(`transferred ${txAmount} from account 1 to account 2`)
-    const abiMethod = utils.findMethod(token.abi, 'transferFrom', 'address,address,uint256,bytes')
-    const args = [accounts[1], accounts[2], txAmount, extraData]
-    const transferData = ethjsABI.encodeMethod(abiMethod, args)
-    await token.sendTransaction({from: accounts[2], data: transferData})
+    await token.transferFromAndCall(accounts[1], accounts[2], txAmount, extraData,{ from: accounts[2] })
     const account1Bal = await token.balanceOf(accounts[2])
     assert.equal(account1Bal.toNumber(), txAmount, 'transferFrom failed when not paused')
   })
