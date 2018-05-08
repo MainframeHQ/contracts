@@ -6,6 +6,13 @@
     },
     "MainframeDistribution": {
       "testnet": "0x5a9A1a42e1d541260E89034E73d1722a45575783"
+    },
+    "ENS": {
+      "testnet": "0x112234455c3a32fd11230c42e7bccd4a84e02010",
+      "mainnet": "0x314159265dd8dbb310642f98f50c066173c1259b"
+    },
+    "ENSResolver": {
+      "testnet": "0x4c641fb9bad9b60ef180c31f56051ce826d21a9a"
     }
   },
   "rpcUrl": {

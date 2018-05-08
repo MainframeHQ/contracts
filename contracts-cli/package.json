@@ -9,6 +9,7 @@
   "dependencies": {
     "chalk": "^2.4.0",
     "csv-parser": "^1.12.1",
+    "eth-ens-namehash": "^2.0.8",
     "fs-extra": "^5.0.0",
     "inquirer": "^5.2.0",
     "ledger-wallet-provider": "^2.0.1-beta.2",
