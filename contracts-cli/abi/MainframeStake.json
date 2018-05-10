@@ -1,6 +1,25 @@
 [
   {
     "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "balances",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
     "inputs": [],
     "name": "owner",
     "outputs": [
@@ -24,12 +43,40 @@
     "name": "whitelist",
     "outputs": [
       {
-        "name": "stake",
+        "name": "stakedAmount",
         "type": "uint256"
       },
       {
-        "name": "owner",
+        "name": "stakerAddress",
         "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "arrayLimit",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "totalDepositBalance",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,
@@ -53,7 +100,7 @@
   {
     "inputs": [
       {
-        "name": "escrowAddress",
+        "name": "tokenAddress",
         "type": "address"
       }
     ],
@@ -70,7 +117,7 @@
         "type": "address"
       }
     ],
-    "name": "Whitelisted",
+    "name": "Staked",
     "type": "event"
   },
   {
@@ -82,7 +129,68 @@
         "type": "address"
       }
     ],
-    "name": "Unlisted",
+    "name": "Unstaked",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "_address",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "depositAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "balance",
+        "type": "uint256"
+      }
+    ],
+    "name": "Deposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "_address",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "withdrawAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "balance",
+        "type": "uint256"
+      }
+    ],
+    "name": "Withdrawal",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "_address",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "refundAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RefundedBalance",
     "type": "event"
   },
   {
@@ -106,15 +214,15 @@
     "constant": false,
     "inputs": [
       {
-        "name": "value",
-        "type": "uint256"
+        "name": "staker",
+        "type": "address"
       },
       {
         "name": "whitelistAddress",
         "type": "address"
       }
     ],
-    "name": "depositAndWhitelist",
+    "name": "stake",
     "outputs": [
       {
         "name": "success",
@@ -133,7 +241,7 @@
         "type": "address"
       }
     ],
-    "name": "unwhitelistAddress",
+    "name": "unstake",
     "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
@@ -143,7 +251,7 @@
     "constant": true,
     "inputs": [
       {
-        "name": "owner",
+        "name": "_address",
         "type": "address"
       }
     ],
@@ -220,24 +328,38 @@
     "type": "function"
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "getEscrowAddress",
-    "outputs": [
+    "constant": false,
+    "inputs": [
       {
-        "name": "",
-        "type": "address"
+        "name": "newLimit",
+        "type": "uint256"
       }
     ],
+    "name": "setArrayLimit",
+    "outputs": [],
     "payable": false,
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "constant": false,
     "inputs": [
       {
-        "name": "token",
+        "name": "addresses",
+        "type": "address[]"
+      }
+    ],
+    "name": "refundBalances",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_token",
         "type": "address"
       }
     ],
