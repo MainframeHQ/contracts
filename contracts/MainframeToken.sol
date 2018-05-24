@@ -11,7 +11,6 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
   address public distributor;
 
   modifier validDestination(address to) {
-    require(to != address(0x0));
     require(to != address(this));
     _;
   }
@@ -47,11 +46,11 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
 
   // ERC827 Methods
 
-  function transferAndCall(address to, uint256 value, bytes data) public validDestination(to) payable isTradeable returns (bool) {
+  function transferAndCall(address to, uint256 value, bytes data) public payable isTradeable returns (bool) {
     return super.transferAndCall(to, value, data);
   }
 
-  function transferFromAndCall(address from, address to, uint256 value, bytes data) public validDestination(to) payable isTradeable returns (bool) {
+  function transferFromAndCall(address from, address to, uint256 value, bytes data) public payable isTradeable returns (bool) {
     return super.transferFromAndCall(from, to, value, data);
   }
 
