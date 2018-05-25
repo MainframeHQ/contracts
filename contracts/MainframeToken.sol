@@ -25,7 +25,7 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
     _;
   }
 
-  function MainframeToken() public {
+  constructor() public {
     totalSupply_ = 10000000000 ether; // 10 billion, 18 decimals (ether = 10^18)
     balances[msg.sender] = totalSupply_;
     emit Transfer(address(0x0), msg.sender, totalSupply_);

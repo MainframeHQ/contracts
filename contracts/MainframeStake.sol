@@ -21,7 +21,7 @@ contract MainframeStake is Ownable, StakeInterface {
 
   mapping (address => Staker) public whitelist; // map of whitelisted addresses for efficient hasStaked check
 
-  function MainframeStake(address tokenAddress) public {
+  constructor(address tokenAddress) public {
     token = ERC20(tokenAddress);
     requiredStake = 1 ether; // ether = 10^18
   }
