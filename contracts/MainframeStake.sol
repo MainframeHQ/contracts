@@ -111,7 +111,7 @@ contract MainframeStake is Ownable, StakeInterface {
     arrayLimit = newLimit;
   }
 
-  function refundBalances(address[] addresses) public onlyOwner {
+  function refundBalances(address[] addresses) external onlyOwner {
     require(addresses.length <= arrayLimit);
     for (uint256 i = 0; i < addresses.length; i++) {
       address _address = addresses[i];
@@ -123,7 +123,7 @@ contract MainframeStake is Ownable, StakeInterface {
     }
   }
 
-  function emergencyERC20Drain(ERC20 _token) public onlyOwner {
+  function emergencyERC20Drain(ERC20 _token) external onlyOwner {
     // owner can drain tokens that are sent here by mistake
     uint256 drainAmount;
     if (address(_token) == address(token)) {

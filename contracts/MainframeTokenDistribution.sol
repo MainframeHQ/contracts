@@ -35,7 +35,7 @@ contract MainframeTokenDistribution is Ownable {
     }
   }
 
-  function emergencyERC20Drain(ERC20 token) public onlyOwner {
+  function emergencyERC20Drain(ERC20 token) external onlyOwner {
     // owner can drain tokens that are sent here by mistake
     uint256 amount = token.balanceOf(this);
     token.transfer(owner, amount);

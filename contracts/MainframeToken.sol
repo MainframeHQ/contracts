@@ -61,13 +61,13 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
 
   // Setters
 
-  function setDistributor(address newDistributor) public onlyOwner {
+  function setDistributor(address newDistributor) external onlyOwner {
     distributor = newDistributor;
   }
 
   // Token Drain
 
-  function emergencyERC20Drain(ERC20 token, uint256 amount) public onlyOwner {
+  function emergencyERC20Drain(ERC20 token, uint256 amount) external onlyOwner {
     // owner can drain tokens that are sent here by mistake
     token.transfer(owner, amount);
   }
