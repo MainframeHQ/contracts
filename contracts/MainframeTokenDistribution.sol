@@ -10,7 +10,7 @@ contract MainframeTokenDistribution is Ownable {
 
   event TokensDistributed(address receiver, uint amount);
 
-  function MainframeTokenDistribution(address tokenAddress) public {
+  constructor(address tokenAddress) public {
     mainframeToken = ERC20(tokenAddress);
   }
 
