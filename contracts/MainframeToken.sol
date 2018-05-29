@@ -44,6 +44,14 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
     return super.approve(spender, value);
   }
 
+  function increaseApproval(address spender, uint addedValue) public isTradeable returns (bool) {
+    return super.increaseApproval(spender, addedValue);
+  }
+
+  function decreaseApproval(address spender, uint subtractedValue) public isTradeable returns (bool) {
+    return super.decreaseApproval(spender, subtractedValue);
+  }
+
   // ERC827 Methods
 
   function transferAndCall(address to, uint256 value, bytes data) public payable isTradeable returns (bool) {

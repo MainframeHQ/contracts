@@ -212,6 +212,54 @@ contract('MainframeToken', (accounts) => {
     assert.equal(ending1Balance.toNumber(), starting1Balance.toNumber() + txAmount, 'Balance of account 1 incorrect')
   })
 
+  it('should fail decrease approval when not tradeable', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[1])
+    const starting1Balance = await token.balanceOf(accounts[2])
+    await token.approve(accounts[2], txAmount, { from: accounts[1] })
+    await utils.assertEvent(token, { event: 'Approval' })
+    await token.pause({ from: accounts[0] })
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await token.decreaseApproval(accounts[2], txAmount, { from: accounts[1] })
+    })
+    assert(didFail)
+  })
+
+  it('should allow to decrease approval when tradeable', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[1])
+    const starting1Balance = await token.balanceOf(accounts[2])
+    await token.approve(accounts[2], txAmount, { from: accounts[1] })
+    await utils.assertEvent(token, { event: 'Approval' })
+    await token.decreaseApproval(accounts[2], txAmount, { from: accounts[1] })
+    const allowance = await token.allowance(accounts[1], accounts[2])
+    assert.equal(allowance.toNumber(), 0, 'Incorrect allowance after decrease')
+  })
+
+  it('should fail increase approval when not tradeable', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[1])
+    const starting1Balance = await token.balanceOf(accounts[2])
+    await token.approve(accounts[2], txAmount, { from: accounts[1] })
+    await utils.assertEvent(token, { event: 'Approval' })
+    await token.pause({ from: accounts[0] })
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await token.increaseApproval(accounts[2], txAmount, { from: accounts[1] })
+    })
+    assert(didFail)
+  })
+
+  it('should allow to increase approval when tradeable', async () => {
+    await token.transfer(accounts[1], txAmount, { from: accounts[0] })
+    const starting0Balance = await token.balanceOf(accounts[1])
+    const starting1Balance = await token.balanceOf(accounts[2])
+    await token.approve(accounts[2], txAmount, { from: accounts[1] })
+    await utils.assertEvent(token, { event: 'Approval' })
+    await token.increaseApproval(accounts[2], txAmount, { from: accounts[1] })
+    const allowance = await token.allowance(accounts[1], accounts[2])
+    assert.equal(allowance.toNumber(), txAmount * 2, 'Incorrect allowance after increase')
+  })
+
   // ERC827 Tests
 
   it('should not allow transfer (with data) by non owner when paused ', async () => {
