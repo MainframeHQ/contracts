@@ -11,7 +11,6 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
   address public distributor;
 
   modifier validDestination(address to) {
-    require(to != address(0x0));
     require(to != address(this));
     _;
   }
@@ -45,18 +44,34 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
     return super.approve(spender, value);
   }
 
+  function increaseApproval(address spender, uint addedValue) public isTradeable returns (bool) {
+    return super.increaseApproval(spender, addedValue);
+  }
+
+  function decreaseApproval(address spender, uint subtractedValue) public isTradeable returns (bool) {
+    return super.decreaseApproval(spender, subtractedValue);
+  }
+
   // ERC827 Methods
 
-  function transferAndCall(address to, uint256 value, bytes data) public validDestination(to) payable isTradeable returns (bool) {
+  function transferAndCall(address to, uint256 value, bytes data) public payable isTradeable returns (bool) {
     return super.transferAndCall(to, value, data);
   }
 
-  function transferFromAndCall(address from, address to, uint256 value, bytes data) public validDestination(to) payable isTradeable returns (bool) {
+  function transferFromAndCall(address from, address to, uint256 value, bytes data) public payable isTradeable returns (bool) {
     return super.transferFromAndCall(from, to, value, data);
   }
 
   function approveAndCall(address spender, uint256 value, bytes data) public payable isTradeable returns (bool) {
     return super.approveAndCall(spender, value, data);
+  }
+
+  function increaseApprovalAndCall(address spender, uint addedValue, bytes data) public payable isTradeable returns (bool) {
+    return super.increaseApprovalAndCall(spender, addedValue, data);
+  }
+
+  function decreaseApprovalAndCall(address spender, uint subtractedValue, bytes data) public payable isTradeable returns (bool) {
+    return super.decreaseApprovalAndCall(spender, subtractedValue, data);
   }
 
   // Setters
