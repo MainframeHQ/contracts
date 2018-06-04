@@ -43,6 +43,15 @@ contract('MainframeStake', (accounts) => {
     assert.equal(totalStaked.toNumber(), requiredStake, 'incorrect total stake value after staking')
   })
 
+  it('should fail to stake if sender address is different to staker param when calling contract directly', async () => {
+    const requiredStake = await stakeContract.requiredStake()
+    await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0 })
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await stakeContract.stake(accounts[1], accounts[0], { from: accounts[0], value: 0 })
+    })
+    assert(didFail, 'succeeded staking when staker different to sender')
+  })
+
   it('should unwhitelist address and return stake', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0 })
@@ -133,6 +142,15 @@ contract('MainframeStake', (accounts) => {
     assert.equal(depositorsBalance, requiredStake.toString())
     assert.equal(totalBalance, requiredStake.toString())
     assert.equal(totalDepositBalance, requiredStake.toString())
+  })
+
+  it('should fail to approve and stake in a single transaction if staker param is different to sender address', async () => {
+    const requiredStake = await stakeContract.requiredStake()
+    const extraData = stakeContract.contract.stake.getData(accounts[1], accounts[0])
+    const didFail = await utils.expectAsyncThrow(async () => {
+      await tokenContract.approveAndCall(stakeContract.address, requiredStake, extraData, { from: accounts[0]})
+    })
+    assert(didFail, 'succeeded staking in single transaction when staker different to sender')
   })
 
   it('should withdraw successfully if balance is high enough', async () => {
