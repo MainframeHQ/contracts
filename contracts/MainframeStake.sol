@@ -34,6 +34,7 @@ contract MainframeStake is Ownable, StakeInterface {
 
   function stake(address staker, address whitelistAddress) external returns (bool success) {
     require(whitelist[whitelistAddress].stakerAddress == 0x0);
+    require(staker == msg.sender || (msg.sender == address(token) && staker == tx.origin));
 
     whitelist[whitelistAddress].stakerAddress = staker;
     whitelist[whitelistAddress].stakedAmount = requiredStake;
