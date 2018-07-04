@@ -1,10 +1,10 @@
 pragma solidity ^0.4.21;
 
-import "openzeppelin-solidity/contracts/token/ERC827/ERC827Token.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
 import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
 import "openzeppelin-solidity/contracts/ownership/Claimable.sol";
 
-contract MainframeToken is ERC827Token, Pausable, Claimable {
+contract MainframeToken is StandardToken, Pausable, Claimable {
   string public constant name = "Mainframe Token";
   string public constant symbol = "MFT";
   uint8  public constant decimals = 18;
@@ -50,28 +50,6 @@ contract MainframeToken is ERC827Token, Pausable, Claimable {
 
   function decreaseApproval(address spender, uint subtractedValue) public isTradeable returns (bool) {
     return super.decreaseApproval(spender, subtractedValue);
-  }
-
-  // ERC827 Methods
-
-  function transferAndCall(address to, uint256 value, bytes data) public payable isTradeable returns (bool) {
-    return super.transferAndCall(to, value, data);
-  }
-
-  function transferFromAndCall(address from, address to, uint256 value, bytes data) public payable isTradeable returns (bool) {
-    return super.transferFromAndCall(from, to, value, data);
-  }
-
-  function approveAndCall(address spender, uint256 value, bytes data) public payable isTradeable returns (bool) {
-    return super.approveAndCall(spender, value, data);
-  }
-
-  function increaseApprovalAndCall(address spender, uint addedValue, bytes data) public payable isTradeable returns (bool) {
-    return super.increaseApprovalAndCall(spender, addedValue, data);
-  }
-
-  function decreaseApprovalAndCall(address spender, uint subtractedValue, bytes data) public payable isTradeable returns (bool) {
-    return super.decreaseApprovalAndCall(spender, subtractedValue, data);
   }
 
   // Setters
