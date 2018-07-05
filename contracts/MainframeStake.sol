@@ -28,19 +28,17 @@ contract MainframeStake is Ownable, StakeInterface {
 
   /**
   * @dev Staking MFT for a node address
-  * @param staker representing the address of the person staking (not msg.sender in case of calling from other contract)
   * @param whitelistAddress representing the address of the node you want to stake for
   */
 
-  function stake(address staker, address whitelistAddress) external returns (bool success) {
+  function stake(address whitelistAddress) external returns (bool success) {
     require(whitelist[whitelistAddress].stakerAddress == 0x0);
-    require(staker == msg.sender || (msg.sender == address(token) && staker == tx.origin));
 
-    whitelist[whitelistAddress].stakerAddress = staker;
+    whitelist[whitelistAddress].stakerAddress = msg.sender;
     whitelist[whitelistAddress].stakedAmount = requiredStake;
 
-    deposit(staker, requiredStake);
-    emit Staked(staker);
+    deposit(msg.sender, requiredStake);
+    emit Staked(msg.sender);
     return true;
   }
 
