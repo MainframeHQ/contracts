@@ -38,7 +38,7 @@ contract MainframeStake is Ownable, StakeInterface {
     whitelist[whitelistAddress].stakedAmount = requiredStake;
 
     deposit(msg.sender, requiredStake);
-    emit Staked(msg.sender);
+    emit Staked(msg.sender, whitelistAddress);
     return true;
   }
 
@@ -54,7 +54,7 @@ contract MainframeStake is Ownable, StakeInterface {
     delete whitelist[whitelistAddress];
 
     withdraw(msg.sender, stakedAmount);
-    emit Unstaked(msg.sender);
+    emit Unstaked(msg.sender, whitelistAddress);
   }
 
   /**
@@ -138,8 +138,8 @@ contract MainframeStake is Ownable, StakeInterface {
     selfdestruct(owner);
   }
 
-  event Staked(address indexed owner);
-  event Unstaked(address indexed owner);
+  event Staked(address indexed owner, address whitelistAddress);
+  event Unstaked(address indexed owner, address whitelistAddress);
   event Deposit(address indexed _address, uint256 depositAmount, uint256 balance);
   event Withdrawal(address indexed _address, uint256 withdrawAmount, uint256 balance);
   event RefundedBalance(address indexed _address, uint256 refundAmount);
