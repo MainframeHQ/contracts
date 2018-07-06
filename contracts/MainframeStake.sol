@@ -28,19 +28,17 @@ contract MainframeStake is Ownable, StakeInterface {
 
   /**
   * @dev Staking MFT for a node address
-  * @param staker representing the address of the person staking (not msg.sender in case of calling from other contract)
   * @param whitelistAddress representing the address of the node you want to stake for
   */
 
-  function stake(address staker, address whitelistAddress) external returns (bool success) {
+  function stake(address whitelistAddress) external returns (bool success) {
     require(whitelist[whitelistAddress].stakerAddress == 0x0);
-    require(staker == msg.sender || (msg.sender == address(token) && staker == tx.origin));
 
-    whitelist[whitelistAddress].stakerAddress = staker;
+    whitelist[whitelistAddress].stakerAddress = msg.sender;
     whitelist[whitelistAddress].stakedAmount = requiredStake;
 
-    deposit(staker, requiredStake);
-    emit Staked(staker);
+    deposit(msg.sender, requiredStake);
+    emit Staked(msg.sender, whitelistAddress);
     return true;
   }
 
@@ -56,7 +54,7 @@ contract MainframeStake is Ownable, StakeInterface {
     delete whitelist[whitelistAddress];
 
     withdraw(msg.sender, stakedAmount);
-    emit Unstaked(msg.sender);
+    emit Unstaked(msg.sender, whitelistAddress);
   }
 
   /**
@@ -140,8 +138,8 @@ contract MainframeStake is Ownable, StakeInterface {
     selfdestruct(owner);
   }
 
-  event Staked(address indexed owner);
-  event Unstaked(address indexed owner);
+  event Staked(address indexed owner, address whitelistAddress);
+  event Unstaked(address indexed owner, address whitelistAddress);
   event Deposit(address indexed _address, uint256 depositAmount, uint256 balance);
   event Withdrawal(address indexed _address, uint256 withdrawAmount, uint256 balance);
   event RefundedBalance(address indexed _address, uint256 refundAmount);

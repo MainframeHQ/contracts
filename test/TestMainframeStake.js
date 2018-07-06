@@ -32,7 +32,7 @@ contract('MainframeStake', (accounts) => {
   it('should whitelist address when staking', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0 })
-    await stakeContract.stake(accounts[0], accounts[0], { from: accounts[0], value: 0 })
+    await stakeContract.stake(accounts[0], { from: accounts[0], value: 0 })
     utils.assertEvent(stakeContract, { event: 'Staked' })
     const totalStaked = await stakeContract.totalStaked()
     const stakersBalance = await stakeContract.balanceOf(accounts[0])
@@ -43,19 +43,10 @@ contract('MainframeStake', (accounts) => {
     assert.equal(totalStaked.toNumber(), requiredStake, 'incorrect total stake value after staking')
   })
 
-  it('should fail to stake if sender address is different to staker param when calling contract directly', async () => {
-    const requiredStake = await stakeContract.requiredStake()
-    await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0 })
-    const didFail = await utils.expectAsyncThrow(async () => {
-      await stakeContract.stake(accounts[1], accounts[0], { from: accounts[0], value: 0 })
-    })
-    assert(didFail, 'succeeded staking when staker different to sender')
-  })
-
   it('should unwhitelist address and return stake', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0 })
-    await stakeContract.stake(accounts[0], accounts[0], { from: accounts[0], value: 0 })
+    await stakeContract.stake(accounts[0], { from: accounts[0], value: 0 })
     utils.assertEvent(stakeContract, { event: 'Staked' })
 
     let totalStaked = await stakeContract.totalStaked()
@@ -79,7 +70,7 @@ contract('MainframeStake', (accounts) => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[1], value: 0 })
     const didFail = await utils.expectAsyncThrow(async () => {
-      await stakeContract.stake(accounts[1], accounts[1], { from: accounts[1], value: 0 })
+      await stakeContract.stake(accounts[1], { from: accounts[1], value: 0 })
     })
     assert(didFail, 'succeeded staking when balance should be too low')
   })
@@ -95,7 +86,7 @@ contract('MainframeStake', (accounts) => {
   it('should check address has stake', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, { from: accounts[0], value: 0 })
-    await stakeContract.stake(accounts[0], accounts[0], { from: accounts[0], value: 0 })
+    await stakeContract.stake(accounts[0], { from: accounts[0], value: 0 })
     const hasStake = await stakeContract.hasStake(accounts[0])
     assert(hasStake, 'address should have stake')
   })
@@ -120,7 +111,7 @@ contract('MainframeStake', (accounts) => {
   it('should deposit successfully when staking', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0], value: 0})
-    await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0], value: 0})
+    await stakeContract.stake(accounts[0], {from: accounts[0], value: 0})
     const depositorsBalance = await stakeContract.balanceOf(accounts[0])
     const totalDepositBalance = await stakeContract.totalDepositBalance()
     const totalBalance = await tokenContract.balanceOf(stakeContract.address)
@@ -134,7 +125,7 @@ contract('MainframeStake', (accounts) => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.transfer(accounts[1], requiredStake, {from: accounts[0], value: 0})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[1], value: 0})
-    await stakeContract.stake(accounts[1], accounts[1], {from: accounts[1], value: 0})
+    await stakeContract.stake(accounts[1], {from: accounts[1], value: 0})
     await utils.assertEvent(stakeContract, {event: 'Deposit'})
     await stakeContract.unstake(accounts[1], {from: accounts[1], value: 0})
     await utils.assertEvent(stakeContract, {event: 'Withdrawal'})
@@ -150,7 +141,7 @@ contract('MainframeStake', (accounts) => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.transfer(accounts[1], requiredStake, {from: accounts[0], value: 0})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[1], value: 0})
-    await stakeContract.stake(accounts[1], accounts[1], {from: accounts[1], value: 0})
+    await stakeContract.stake(accounts[1], {from: accounts[1], value: 0})
     const returnBalanceFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.refundBalances([accounts[1]], {from: accounts[2], value: 0})
     })
@@ -160,10 +151,10 @@ contract('MainframeStake', (accounts) => {
   it('should fail to refund balances if list size exceeds limit', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0]})
-    await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0]})
+    await stakeContract.stake(accounts[0], {from: accounts[0]})
     await tokenContract.transfer(accounts[1], requiredStake, {from: accounts[0]})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[1]})
-    await stakeContract.stake(accounts[1], accounts[1], {from: accounts[1]})
+    await stakeContract.stake(accounts[1], {from: accounts[1]})
     await stakeContract.setArrayLimit(1, {from: accounts[0]})
     const returnBalanceFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.refundBalances([accounts[0], accounts[1]], {from: accounts[0]})
@@ -176,9 +167,9 @@ contract('MainframeStake', (accounts) => {
     await tokenContract.transfer(accounts[1], requiredStake, {from: accounts[0], value: 0})
     await tokenContract.transfer(accounts[2], requiredStake, {from: accounts[0], value: 0})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[1], value: 0})
-    await stakeContract.stake(accounts[1], accounts[1], {from: accounts[1], value: 0})
+    await stakeContract.stake(accounts[1], {from: accounts[1], value: 0})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[2], value: 0})
-    await stakeContract.stake(accounts[2], accounts[2], {from: accounts[2], value: 0})
+    await stakeContract.stake(accounts[2], {from: accounts[2], value: 0})
     await stakeContract.refundBalances([accounts[1], accounts[2]], {from: accounts[0], value: 0})
     const totalBalance = await tokenContract.balanceOf(stakeContract.address)
     const depositor1Balance = await stakeContract.balanceOf(accounts[1])
@@ -198,7 +189,7 @@ contract('MainframeStake', (accounts) => {
   it('should successfully destroy itself if balance is 0', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0], value: 0})
-    await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0], value: 0})
+    await stakeContract.stake(accounts[0], {from: accounts[0], value: 0})
     await stakeContract.unstake(accounts[0], {from: accounts[0], value: 0})
     await stakeContract.destroy()
   })
@@ -206,7 +197,7 @@ contract('MainframeStake', (accounts) => {
   it('should fail to destroy itself if balance is higher than 0', async () => {
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0], value: 0})
-    await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0], value: 0})
+    await stakeContract.stake(accounts[0], {from: accounts[0], value: 0})
     const didFail = await utils.expectAsyncThrow(async () => {
       await stakeContract.destroy()
     })
@@ -226,7 +217,7 @@ contract('MainframeStake', (accounts) => {
     let totalDepositBalance
     const requiredStake = await stakeContract.requiredStake()
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[0], value: 0})
-    await stakeContract.stake(accounts[0], accounts[0], {from: accounts[0], value: 0})
+    await stakeContract.stake(accounts[0], {from: accounts[0], value: 0})
     await utils.assertEvent(stakeContract, {event: 'Deposit'})
     const depositorsBalance = await stakeContract.balanceOf(accounts[0])
     await tokenContract.transfer(stakeContract.address, requiredStake, {from: accounts[0]})
@@ -251,11 +242,11 @@ contract('MainframeStake', (accounts) => {
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[1], value: 0})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[2], value: 0})
     await tokenContract.approve(stakeContract.address, requiredStake, {from: accounts[3], value: 0})
-    await stakeContract.stake(accounts[1], accounts[1], {from: accounts[1], value: 0})
+    await stakeContract.stake(accounts[1], {from: accounts[1], value: 0})
     await stakeContract.unstake(accounts[1], {from: accounts[1], value: 0})
-    await stakeContract.stake(accounts[2], accounts[2], {from: accounts[2], value: 0})
+    await stakeContract.stake(accounts[2], {from: accounts[2], value: 0})
     await stakeContract.unstake(accounts[2], {from: accounts[2], value: 0})
-    await stakeContract.stake(accounts[3], accounts[3], {from: accounts[3], value: 0})
+    await stakeContract.stake(accounts[3], {from: accounts[3], value: 0})
     await stakeContract.unstake(accounts[3], {from: accounts[3], value: 0})
     var events = stakeContract.Withdrawal({}, {
       fromBlock: 0,
