@@ -2,9 +2,7 @@
 
 ### Mainframe Token
 
-[ERC827](https://github.com/ethereum/EIPs/issues/827) based token contract.
-
-ERC827 is an extension of ERC20 that allows the execution of calls inside transfer and approvals whilst being fully compatible with original ERC20 standard.
+An ERC20 standard token, built using the [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-solidity) framework.
 
 ### Mainframe Staking
 
